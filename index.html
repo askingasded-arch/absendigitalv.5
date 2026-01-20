@@ -1,0 +1,2902 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi Siswa Digital</title>
+
+<style>
+html, body{
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family:Poppins,sans-serif;
+}
+
+/* ===== SPLASH SCREEN ===== */
+#splash{
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#5cc6c6,#3fa9a9,#2f8f8f);
+  background-size:300% 300%;
+  animation:bgMove 8s ease infinite;
+  color:#fff;
+  z-index:9999;
+  transition:opacity .8s ease,visibility .8s ease;
+}
+
+#splash.fade-out{
+  opacity:0;
+  visibility:hidden;
+}
+
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+#splash img{
+  width:140px;
+  margin-bottom:20px;
+  animation:logoAnim 2s ease forwards;
+}
+
+@keyframes logoAnim{
+  from{opacity:0;transform:scale(.7)}
+  to{opacity:1;transform:scale(1)}
+}
+
+.app-title{
+  font-size:28px;
+  font-weight:700;
+  margin-bottom:8px;
+  animation:fadeUp 1.5s ease forwards .5s;
+}
+
+.subtitle{
+  font-size:16px;
+  margin-bottom:30px;
+  opacity:.9;
+  animation:fadeUp 1.5s ease forwards 1s;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.loading{
+  width:160px;
+  height:8px;
+  background:rgba(255,255,255,.3);
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.loading::after{
+  content:"";
+  width:40%;
+  height:100%;
+  background:#fff;
+  display:block;
+  animation:load 2s infinite;
+}
+
+@keyframes load{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(250%)}
+}
+</style>
+</head>
+
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <img src="img/logo.png" alt="Logo">
+  <div class="app-title">ABSENSI SISWA DIGITAL</div>
+  <div class="subtitle">Aplikasi untuk Guru mata pelajaran </div>
+  <div class="loading"></div>
+</div>
+
+<!-- HALAMAN UTAMA ASLI (TIDAK DIUBAH) -->
+<div id="app">
+  <!-- KODE HALAMAN UTAMA KAMU TETAP DI SINI -->
+</div>
+
+<script>
+window.onload = () => {
+  setTimeout(() => {
+    document.getElementById("splash").classList.add("fade-out");
+  }, 5000);
+};
+</script>
+
+</body>
+</html>
+
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Siswa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Quicksand', sans-serif;
+    }
+    
+    .app-wrapper {
+      max-width: 420px;
+      margin: 0 auto;
+      height: 100%;
+      background: linear-gradient(135deg, #87CEEB 0%, #87CEFA 100%);
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .btn-hover:hover {
+      transform: scale(1.02);
+      transition: all 0.2s ease;
+    }
+    
+    .card-shadow {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    #recent-list {
+      transition: opacity 0.3s ease;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div class="app-wrapper h-full overflow-auto" id="main-app"><!-- Header -->
+   <div class="p-5 pt-8" id="header-section">
+    <div class="flex justify-between items-start text-white mb-5">
+     <div>
+      <h1 class="text-3xl font-bold mb-1">Absensi Siswa</h1>
+      <p class="text-sm opacity-90" id="rotating-text">SMA Negeri 1 Indonesia</p>
+     </div><button onclick="openSettings()" class="text-3xl hover:scale-110 transition-transform">𖤓</button>
+    </div><!-- Date Display -->
+    <div class="bg-white/20 backdrop-blur-lg rounded-2xl p-3 text-white text-center">
+     <p class="text-base font-semibold mb-1" id="display-date"></p>
+     <p class="text-3xl font-bold" id="display-time"></p>
+    </div>
+   </div><!-- Main Content -->
+   <div class="p-5 pb-20"><!-- Beranda Tab -->
+    <div id="tab-beranda" class="fade-in">
+     <div class="grid grid-cols-2 gap-4 mb-5">
+      <div class="bg-white rounded-2xl p-5 card-shadow">
+       <p class="text-3xl font-bold text-sky-600 mb-1" id="dashboard-class">-</p>
+       <p class="text-xs text-gray-600">Kelas</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 card-shadow">
+       <p class="text-sm font-bold text-green-600 mb-1" id="dashboard-students">0 Siswa</p>
+       <p class="text-xs text-gray-600" id="dashboard-gender">L: 0 | P: 0</p>
+      </div>
+     </div>
+     <div class="bg-white rounded-2xl p-4 card-shadow mb-5">
+      <p class="text-sm font-bold text-gray-800 mb-2">Statistik Hari Ini</p>
+      <div class="grid grid-cols-4 gap-2">
+       <div class="bg-green-500 rounded-xl p-2 text-center text-white">
+        <p class="text-xl font-bold" id="dashboard-stat-h">0</p>
+        <p class="text-xs font-semibold mt-1">Hadir</p>
+       </div>
+       <div class="bg-amber-500 rounded-xl p-2 text-center text-white">
+        <p class="text-xl font-bold" id="dashboard-stat-s">0</p>
+        <p class="text-xs font-semibold mt-1">Sakit</p>
+       </div>
+       <div class="bg-blue-500 rounded-xl p-2 text-center text-white">
+        <p class="text-xl font-bold" id="dashboard-stat-i">0</p>
+        <p class="text-xs font-semibold mt-1">Izin</p>
+       </div>
+       <div class="bg-red-500 rounded-xl p-2 text-center text-white">
+        <p class="text-xl font-bold" id="dashboard-stat-a">0</p>
+        <p class="text-xs font-semibold mt-1">Alpha</p>
+       </div>
+      </div>
+     </div>
+     <div class="bg-white rounded-2xl p-5 card-shadow mb-5">
+      <p class="text-3xl font-bold text-purple-600 mb-1" id="dashboard-percent">0%</p>
+      <p class="text-xs text-gray-600">Persentase Kehadiran Siswa</p>
+     </div><!-- Recent Activity -->
+     <div class="bg-white rounded-3xl p-6 card-shadow">
+      <h3 class="font-bold text-gray-800 mb-4 text-lg">Absensi Hari Ini</h3>
+      <div id="recent-list" class="space-y-3 max-h-64 overflow-auto">
+       <div class="text-center text-gray-400 py-8 text-sm">
+        Belum ada absensi hari ini
+       </div>
+      </div>
+     </div>
+    </div><!-- Siswa Tab -->
+    <div id="tab-siswa" class="hidden fade-in">
+     <div class="text-center mb-5">
+      <h1 class="text-3xl font-bold text-white">DATA SISWA</h1>
+     </div>
+     <div class="bg-white rounded-3xl p-6 card-shadow">
+      <div class="flex justify-between items-center mb-5">
+       <h2 class="text-xl font-bold text-gray-800">Daftar Siswa</h2><button onclick="openAddStudent()" class="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl btn-hover shadow-lg"> ➕ Tambah </button>
+      </div>
+      <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Filter Kelas</label> <select id="student-class-filter" onchange="renderStudentTable()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="">Semua Kelas</option> </select>
+      </div>
+      <div class="mb-3"><span class="text-sm text-gray-600" id="student-count-text">0 siswa</span>
+      </div>
+      <div class="overflow-auto max-h-96 border-2 border-gray-200 rounded-xl">
+       <table class="w-full min-w-max bg-white">
+        <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white sticky top-0">
+         <tr>
+          <th class="p-3 text-left text-xs font-bold">NO</th>
+          <th class="p-3 text-left text-xs font-bold min-w-[120px]">NAMA</th>
+          <th class="p-3 text-left text-xs font-bold min-w-[100px]">NISN</th>
+          <th class="p-3 text-left text-xs font-bold">KELAS</th>
+          <th class="p-3 text-left text-xs font-bold min-w-[80px]">GENDER</th>
+          <th class="p-3 text-center text-xs font-bold min-w-[120px]">AKSI</th>
+         </tr>
+        </thead>
+        <tbody id="student-table-body">
+         <tr>
+          <td colspan="6" class="text-center text-gray-400 py-10">Belum ada data siswa</td>
+         </tr>
+        </tbody>
+       </table>
+      </div>
+     </div>
+    </div><!-- Absen Tab -->
+    <div id="tab-absen" class="hidden fade-in">
+     <div class="text-center mb-5">
+      <h1 class="text-3xl font-bold text-white">ABSENSI</h1>
+     </div>
+     <div class="bg-white rounded-3xl p-6 card-shadow">
+      <h2 class="text-xl font-bold text-gray-800 mb-5">Absensi Kelas</h2>
+      <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal</label> <input type="date" id="absen-date" onchange="updateDateDisplay()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+      </div>
+      <div class="mb-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl" id="date-display-box">
+       <p class="text-sm font-semibold text-indigo-700 mb-1">📅 Tanggal Absensi:</p>
+       <p class="text-lg font-bold text-indigo-900" id="date-display-text">-</p>
+      </div>
+      <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label> <select id="absen-class" onchange="loadStudentList()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="">-- Pilih Kelas --</option> </select>
+      </div>
+      <div id="student-list-container" class="hidden">
+       <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-gray-800">Daftar Siswa</h3><span class="text-sm text-gray-600" id="student-list-count">0 siswa</span>
+       </div>
+       <div class="overflow-auto max-h-96 border-2 border-gray-200 rounded-xl mb-5">
+        <table class="w-full bg-white">
+         <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white sticky top-0">
+          <tr>
+           <th class="p-3 text-left text-xs font-bold">NO</th>
+           <th class="p-3 text-left text-xs font-bold min-w-[150px]">NAMA</th>
+           <th class="p-3 text-center text-xs font-bold min-w-[100px]">STATUS</th>
+           <th class="p-3 text-center text-xs font-bold">AKSI</th>
+          </tr>
+         </thead>
+         <tbody id="student-list-body"></tbody>
+        </table>
+       </div><button onclick="openAbsenModal()" id="btn-start-absen" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl btn-hover shadow-lg"> ✏️ Mulai Absensi </button>
+      </div>
+     </div>
+    </div><!-- Rekap Tab -->
+    <div id="tab-rekap" class="hidden fade-in">
+     <div class="text-center mb-5">
+      <h1 class="text-3xl font-bold text-white">REKAP</h1>
+     </div><!-- Sub Tabs -->
+     <div class="bg-white/20 backdrop-blur-lg rounded-2xl p-1 mb-5 flex gap-1"><button onclick="switchRekapSubTab('history')" id="rekap-subtab-history" class="flex-1 py-3 rounded-xl font-bold transition-all bg-white text-indigo-600"> Riwayat </button> <button onclick="switchRekapSubTab('stats')" id="rekap-subtab-stats" class="flex-1 py-3 rounded-xl font-bold transition-all text-white"> Statistik </button>
+     </div><!-- History Sub Tab -->
+     <div id="rekap-history" class="fade-in">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+       <div class="flex justify-between items-center mb-5">
+        <h2 class="text-xl font-bold text-gray-800">Riwayat</h2><span class="text-sm text-gray-600" id="history-total">0 data</span>
+       </div>
+       <div class="space-y-3 mb-5">
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Filter Kelas</label> <select id="history-class-filter" onchange="renderHistory()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="">Semua Kelas</option> </select>
+        </div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Cari Nama</label> <input type="text" id="history-name-search" oninput="renderHistory()" placeholder="Ketik nama siswa..." class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+        </div>
+       </div>
+       <div id="history-list" class="space-y-3 max-h-96 overflow-auto">
+        <div class="text-center text-gray-400 py-10">
+         Belum ada data
+        </div>
+       </div>
+      </div>
+     </div><!-- Stats Sub Tab -->
+     <div id="rekap-stats" class="hidden fade-in">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+       <h2 class="text-xl font-bold text-gray-800 mb-5">Rekap Bulanan</h2>
+       <div class="grid grid-cols-2 gap-3 mb-4">
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label> <select id="stats-month" onchange="renderStats()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="all">Semua Bulan</option> <option value="1">Januari</option> <option value="2">Februari</option> <option value="3">Maret</option> <option value="4">April</option> <option value="5">Mei</option> <option value="6">Juni</option> <option value="7">Juli</option> <option value="8">Agustus</option> <option value="9">September</option> <option value="10">Oktober</option> <option value="11">November</option> <option value="12">Desember</option> </select>
+        </div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label> <select id="stats-year" onchange="renderStats()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> </select>
+        </div>
+       </div>
+       <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label> <select id="stats-class" onchange="renderStats()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="">-- Pilih Kelas --</option> <option value="all">Semua Kelas</option> </select>
+       </div>
+       <div class="grid grid-cols-4 gap-2 mb-5">
+        <div class="bg-green-100 rounded-xl p-3 text-center">
+         <p class="text-2xl font-bold text-green-600" id="stats-hadir">0</p>
+         <p class="text-xs text-green-700">Hadir</p>
+        </div>
+        <div class="bg-amber-100 rounded-xl p-3 text-center">
+         <p class="text-2xl font-bold text-amber-600" id="stats-sakit">0</p>
+         <p class="text-xs text-amber-700">Sakit</p>
+        </div>
+        <div class="bg-blue-100 rounded-xl p-3 text-center">
+         <p class="text-2xl font-bold text-blue-600" id="stats-izin">0</p>
+         <p class="text-xs text-blue-700">Izin</p>
+        </div>
+        <div class="bg-red-100 rounded-xl p-3 text-center">
+         <p class="text-2xl font-bold text-red-600" id="stats-alpha">0</p>
+         <p class="text-xs text-red-700">Alpha</p>
+        </div>
+       </div>
+       <div class="mb-5">
+        <p class="text-sm font-semibold text-gray-700 mb-2">Persentase Kehadiran</p>
+        <div class="h-6 bg-gray-200 rounded-full overflow-hidden">
+         <div id="stats-bar" class="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <p class="text-right text-sm text-gray-600 mt-1"><span id="stats-percent">0</span>%</p>
+       </div>
+       <div id="stats-table-container" class="hidden">
+        <h3 class="font-bold text-gray-800 mb-3">Detail Per Siswa</h3>
+        <div class="overflow-auto max-h-96 border-2 border-gray-200 rounded-xl">
+         <table class="w-full min-w-max bg-white">
+          <thead class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white sticky top-0">
+           <tr>
+            <th class="p-3 text-center text-xs font-bold">NO</th>
+            <th class="p-3 text-left text-xs font-bold min-w-[150px]">NAMA</th>
+            <th class="p-3 text-center text-xs font-bold">HADIR</th>
+            <th class="p-3 text-center text-xs font-bold">SAKIT</th>
+            <th class="p-3 text-center text-xs font-bold">IZIN</th>
+            <th class="p-3 text-center text-xs font-bold">ALPHA</th>
+            <th class="p-3 text-center text-xs font-bold min-w-[100px]">%</th>
+           </tr>
+          </thead>
+          <tbody id="stats-table-body"></tbody>
+         </table>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Unduh Tab -->
+    <div id="tab-unduh" class="hidden fade-in">
+     <div class="text-center mb-5">
+      <h1 class="text-3xl font-bold text-white">UNDUH &amp; EKSPOR</h1>
+     </div><!-- Sub Tabs -->
+     <div class="bg-white/20 backdrop-blur-lg rounded-2xl p-1 mb-5 flex gap-1"><button onclick="switchUnduhSubTab('unduh')" id="unduh-subtab-unduh" class="flex-1 py-3 rounded-xl font-bold transition-all bg-white text-indigo-600 text-xs"> Unduh </button> <button onclick="switchUnduhSubTab('kirim')" id="unduh-subtab-kirim" class="flex-1 py-3 rounded-xl font-bold transition-all text-white text-xs"> Kirim </button> <button onclick="switchUnduhSubTab('save')" id="unduh-subtab-save" class="flex-1 py-3 rounded-xl font-bold transition-all text-white text-xs"> Save </button>
+     </div><!-- Unduh Export -->
+     <div id="unduh-unduh" class="fade-in">
+      <div class="bg-white rounded-3xl p-6 card-shadow mb-4">
+       <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span class="text-2xl">📥</span> <span>Download Riwayat</span></h2>
+       <div class="space-y-3 mb-5">
+        <div class="grid grid-cols-2 gap-3">
+         <div><label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label> <select id="export-history-month" onchange="handleHistoryMonthChange()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="all">Semua Bulan</option> <option value="1">Januari</option> <option value="2">Februari</option> <option value="3">Maret</option> <option value="4">April</option> <option value="5">Mei</option> <option value="6">Juni</option> <option value="7">Juli</option> <option value="8">Agustus</option> <option value="9">September</option> <option value="10">Oktober</option> <option value="11">November</option> <option value="12">Desember</option> </select>
+         </div>
+         <div><label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label> <select id="export-history-year" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> </select>
+         </div>
+        </div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label> <select id="export-history-class" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="all">Semua Kelas</option> </select>
+        </div>
+       </div>
+       <div class="grid grid-cols-2 gap-3"><button onclick="exportHistoryExcel()" class="py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 📊 Excel </button> <button onclick="exportHistoryPDF()" class="py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 📄 PDF </button>
+       </div>
+       <div id="export-history-message" class="hidden mt-4 p-4 rounded-xl text-center font-semibold"></div>
+      </div>
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+       <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span class="text-2xl">📊</span> <span>Download Rekap</span></h2>
+       <div class="space-y-3 mb-5">
+        <div class="grid grid-cols-2 gap-3">
+         <div><label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label> <select id="export-rekap-month" onchange="handleRekapMonthChange()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="all">Semua Bulan</option> <option value="1">Januari</option> <option value="2">Februari</option> <option value="3">Maret</option> <option value="4">April</option> <option value="5">Mei</option> <option value="6">Juni</option> <option value="7">Juli</option> <option value="8">Agustus</option> <option value="9">September</option> <option value="10">Oktober</option> <option value="11">November</option> <option value="12">Desember</option> </select>
+         </div>
+         <div><label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label> <select id="export-rekap-year" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> </select>
+         </div>
+        </div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label> <select id="export-rekap-class" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="all">Semua Kelas</option> </select>
+        </div>
+       </div>
+       <div class="grid grid-cols-2 gap-3"><button onclick="exportRekapExcel()" class="py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 📊 Excel </button> <button onclick="exportRekapPDF()" class="py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 📄 PDF </button>
+       </div>
+       <div id="export-rekap-message" class="hidden mt-4 p-4 rounded-xl text-center font-semibold"></div>
+      </div>
+     </div><!-- Kirim -->
+     <div id="unduh-kirim" class="hidden fade-in">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+       <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span class="text-2xl">📤</span> <span>Kirim Laporan</span></h2>
+       <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-5">
+        <p class="text-sm font-bold text-blue-800 mb-2">ℹ️ Cara Kirim:</p>
+        <ol class="text-xs text-blue-700 space-y-1 list-decimal ml-4">
+         <li>Pilih <strong>Periode &amp; Kelas</strong></li>
+         <li>Klik tombol <strong>WhatsApp</strong> atau <strong>Email</strong></li>
+         <li>Aplikasi akan terbuka dengan data laporan</li>
+         <li>Lampirkan file Excel jika diperlukan</li>
+        </ol>
+       </div>
+       <div class="space-y-4 mb-5">
+        <div class="grid grid-cols-2 gap-3">
+         <div><label class="block text-sm font-semibold text-gray-700 mb-2">Bulan</label> <select id="send-month" onchange="handleSendMonthChange()" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="all">Semua Bulan</option> <option value="1">Januari</option> <option value="2">Februari</option> <option value="3">Maret</option> <option value="4">April</option> <option value="5">Mei</option> <option value="6">Juni</option> <option value="7">Juli</option> <option value="8">Agustus</option> <option value="9">September</option> <option value="10">Oktober</option> <option value="11">November</option> <option value="12">Desember</option> </select>
+         </div>
+         <div><label class="block text-sm font-semibold text-gray-700 mb-2">Tahun</label> <select id="send-year" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> </select>
+         </div>
+        </div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label> <select id="send-class" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="">-- Pilih Kelas --</option> <option value="all">Semua Kelas</option> </select>
+        </div>
+       </div>
+       <div class="space-y-3"><button onclick="sendViaWhatsApp()" class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl btn-hover shadow-lg flex items-center justify-center gap-2"> <span class="text-2xl">📱</span> <span>Kirim via WhatsApp</span> </button> <button onclick="sendViaEmail()" class="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl btn-hover shadow-lg flex items-center justify-center gap-2"> <span class="text-2xl">  </span> <span>Kirim via Email</span> </button>
+       </div>
+       <div id="send-message-box" class="hidden mt-4 p-4 rounded-xl text-center font-semibold"></div>
+      </div>
+     </div><!-- Save/Backup -->
+     <div id="unduh-save" class="hidden fade-in">
+      <div class="bg-white rounded-3xl p-6 card-shadow mb-4">
+       <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span class="text-2xl">  </span> <span>Autosave Aktif</span></h2>
+       <div class="bg-green-50 border-2 border-green-200 rounded-2xl p-4 mb-4">
+        <p class="text-sm font-bold text-green-800 mb-2">✅ Data Tersimpan Otomatis</p>
+        <p class="text-xs text-green-700">Semua data siswa dan absensi otomatis tersimpan di browser Anda. Data tetap aman meskipun aplikasi ditutup atau di-refresh.</p>
+       </div>
+      </div><!-- Backup Section -->
+      <div class="bg-white rounded-3xl p-6 card-shadow mb-4">
+       <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2"><span class="text-xl">  </span> <span>Backup Data</span></h2>
+       <p class="text-sm text-gray-600 mb-4">Simpan seluruh data ke file JSON untuk backup eksternal.</p><button onclick="backupData()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 💾 Download Backup </button>
+      </div><!-- Restore Section -->
+      <div class="bg-white rounded-3xl p-6 card-shadow mb-4">
+       <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2"><span class="text-xl">🔄</span> <span>Restore Data</span></h2>
+       <p class="text-sm text-gray-600 mb-4">Pulihkan data dari file backup JSON.</p>
+       <div class="mb-3"><input type="file" id="restore-file" accept=".json" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white text-sm">
+       </div><button onclick="restoreData()" class="w-full py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 🔄 Restore Backup </button>
+      </div><!-- Clear All Section -->
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+       <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2"><span class="text-xl">🗑️</span> <span>Hapus Semua Data</span></h2>
+       <p class="text-sm text-gray-600 mb-4">Hapus seluruh data siswa dan absensi. <strong class="text-red-600">Tindakan ini tidak dapat dibatalkan!</strong></p><button onclick="confirmClearAll()" class="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-xl btn-hover shadow-lg"> 🗑️ Hapus Semua Data </button>
+      </div>
+      <div id="save-message" class="hidden mt-4 p-4 rounded-xl text-center font-semibold"></div>
+     </div>
+    </div>
+   </div><!-- Bottom Navigation -->
+   <div class="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-2 shadow-2xl" style="max-width: 420px; margin: 0 auto;">
+    <div class="flex justify-around gap-1"><button onclick="goToTab('beranda')" class="flex items-center justify-center px-3 py-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all text-xs" id="nav-beranda"> Beranda </button> <button onclick="goToTab('siswa')" class="flex items-center justify-center px-3 py-2 rounded-lg bg-gray-100 text-gray-500 font-semibold transition-all hover:bg-gray-200 text-xs" id="nav-siswa"> Siswa </button> <button onclick="goToTab('absen')" class="flex items-center justify-center px-3 py-2 rounded-lg bg-gray-100 text-gray-500 font-semibold transition-all hover:bg-gray-200 text-xs" id="nav-absen"> Absen </button> <button onclick="goToTab('rekap')" class="flex items-center justify-center px-3 py-2 rounded-lg bg-gray-100 text-gray-500 font-semibold transition-all hover:bg-gray-200 text-xs" id="nav-rekap"> Rekap </button> <button onclick="goToTab('unduh')" class="flex items-center justify-center px-3 py-2 rounded-lg bg-gray-100 text-gray-500 font-semibold transition-all hover:bg-gray-200 text-xs" id="nav-unduh"> Unduh </button>
+    </div>
+   </div>
+  </div><!-- Welcome Notification Modal -->
+  <div id="modal-welcome" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50" style="max-width: 420px; margin: 0 auto;">
+   <div class="bg-white rounded-3xl p-6 m-5 max-w-sm w-full shadow-2xl" onclick="event.stopPropagation()">
+    <div class="text-center mb-5">
+     <div class="text-6xl mb-3">
+      👋
+     </div>
+     <h2 class="text-2xl font-bold text-indigo-600 mb-3">Selamat Datang!</h2>
+     <p class="text-gray-700 text-sm leading-relaxed">Selamat datang di <strong>Aplikasi Absensi Siswa</strong>. Aplikasi ini adalah pegangan guru mata pelajaran.</p>
+    </div>
+    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-5">
+     <p class="text-amber-800 font-semibold text-sm mb-2">⚠️ Langkah Pertama:</p>
+     <p class="text-amber-700 text-sm leading-relaxed">Silakan Bapak/Ibu Guru untuk mengisi terlebih dahulu informasi sekolah untuk melanjutkan menggunakan aplikasinya.</p>
+    </div><button onclick="closeWelcomeAndOpenSettings()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl btn-hover shadow-lg"> Isi Informasi Sekolah </button>
+   </div>
+  </div><!-- Settings Modal -->
+  <div id="modal-settings" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50" style="max-width: 420px; margin: 0 auto;">
+   <div class="bg-white rounded-3xl p-6 m-5 max-w-sm w-full shadow-2xl" onclick="event.stopPropagation()">
+    <div class="mb-5">
+     <h2 class="text-2xl font-bold text-gray-800">📋 Informasi Sekolah</h2>
+    </div>
+    <div class="space-y-4">
+     <div><label class="block text-sm font-semibold text-gray-700 mb-2">Nama Sekolah</label> <input type="text" id="setting-school" placeholder="SMA Negeri 1 Jakarta" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+     </div>
+     <div><label class="block text-sm font-semibold text-gray-700 mb-2">Mata Pelajaran</label> <input type="text" id="setting-subject" placeholder="Matematika" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+     </div>
+     <div><label class="block text-sm font-semibold text-gray-700 mb-2">Nama Guru</label> <input type="text" id="setting-teacher" placeholder="Budi Santoso, S.Pd" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+     </div><button onclick="saveSettings()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl btn-hover shadow-lg"> Simpan </button>
+     <div id="settings-error" class="hidden p-3 bg-red-100 rounded-xl text-red-700 text-center text-sm font-semibold"></div>
+     <div id="settings-success" class="hidden p-3 bg-green-100 rounded-xl text-green-700 text-center text-sm font-semibold">
+      ✅ Pengaturan berhasil disimpan!
+     </div>
+    </div>
+   </div>
+  </div><!-- Add Student Modal -->
+  <div id="modal-add-student" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50" style="max-width: 420px; margin: 0 auto;" onclick="if(event.target === this) closeAddStudent()">
+   <div class="bg-white rounded-3xl p-6 m-5 max-w-sm w-full shadow-2xl max-h-[90%] overflow-auto" onclick="event.stopPropagation()">
+    <div class="flex justify-between items-center mb-5">
+     <h2 class="text-2xl font-bold text-gray-800">➕ Tambah Siswa</h2><button onclick="closeAddStudent()" class="text-gray-400 hover:text-gray-600 text-3xl">✕</button>
+    </div><!-- Method Selection -->
+    <div id="add-method-selection">
+     <p class="text-sm text-gray-600 mb-4">Pilih metode untuk menambahkan siswa:</p>
+     <div class="space-y-3"><button onclick="selectMethod('manual')" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl btn-hover shadow-lg"> ✍️ Input Manual </button> <button onclick="selectMethod('upload')" class="w-full py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 📤 Upload Excel </button>
+     </div>
+    </div><!-- Manual Form -->
+    <div id="add-manual-form" class="hidden"><button onclick="backToMethodSelection()" class="mb-4 text-indigo-600 hover:text-indigo-800 text-sm flex items-center gap-1 font-semibold"> ← Kembali </button>
+     <div class="space-y-4">
+      <div><label class="block text-sm font-semibold text-gray-700 mb-2">Nama Siswa</label> <input type="text" id="manual-name" placeholder="Nama lengkap" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+      </div>
+      <div><label class="block text-sm font-semibold text-gray-700 mb-2">NISN</label> <input type="text" id="manual-nisn" placeholder="Nomor Induk" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+      </div>
+      <div><label class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label> <input type="text" id="manual-class" placeholder="X-A, XI-B, XII-IPA" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+      </div>
+      <div><label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Kelamin</label> <select id="manual-gender" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="">Pilih</option> <option value="L">L</option> <option value="P">P</option> </select>
+      </div><button onclick="saveManualStudent()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl btn-hover shadow-lg"> Simpan </button>
+      <div id="manual-error" class="hidden p-3 bg-red-100 rounded-xl text-red-700 text-center text-sm font-semibold"></div>
+      <div id="manual-success" class="hidden p-3 bg-green-100 rounded-xl text-green-700 text-center text-sm font-semibold">
+       ✅ Siswa berhasil ditambahkan!
+      </div>
+     </div>
+    </div><!-- Upload Form -->
+    <div id="add-upload-form" class="hidden"><button onclick="backToMethodSelection()" class="mb-4 text-indigo-600 hover:text-indigo-800 text-sm flex items-center gap-1 font-semibold"> ← Kembali </button>
+     <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4">
+      <p class="text-sm text-blue-700 font-semibold mb-2">Format Excel:</p>
+      <div class="text-xs text-blue-600 space-y-1">
+       <p>• Kolom 1: <strong>NAMA SISWA</strong></p>
+       <p>• Kolom 2: <strong>NISN</strong></p>
+       <p>• Kolom 3: <strong>KELAS</strong></p>
+       <p>• Kolom 4: <strong>JENIS KELAMIN</strong></p>
+      </div>
+     </div>
+     <div class="space-y-4">
+      <div><label class="block text-sm font-semibold text-gray-700 mb-2">Pilih File Excel</label> <input type="file" id="excel-file" accept=".xlsx,.xls" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white text-sm">
+      </div><button onclick="processExcel()" class="w-full py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 📤 Upload </button>
+      <div id="upload-error" class="hidden p-3 bg-red-100 rounded-xl text-red-700 text-center text-sm font-semibold"></div>
+      <div id="upload-success" class="hidden p-3 bg-green-100 rounded-xl text-green-700 text-center text-sm font-semibold">
+       ✅ Data berhasil diupload!
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Edit Student Modal -->
+  <div id="modal-edit-student" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50" style="max-width: 420px; margin: 0 auto;" onclick="if(event.target === this) closeEditStudent()">
+   <div class="bg-white rounded-3xl p-6 m-5 max-w-sm w-full shadow-2xl" onclick="event.stopPropagation()">
+    <div class="flex justify-between items-center mb-5">
+     <h2 class="text-2xl font-bold text-gray-800">✏️ Edit Siswa</h2><button onclick="closeEditStudent()" class="text-gray-400 hover:text-gray-600 text-3xl">✕</button>
+    </div>
+    <div class="space-y-4">
+     <div><label class="block text-sm font-semibold text-gray-700 mb-2">Nama Siswa</label> <input type="text" id="edit-name" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+     </div>
+     <div><label class="block text-sm font-semibold text-gray-700 mb-2">NISN</label> <input type="text" id="edit-nisn" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+     </div>
+     <div><label class="block text-sm font-semibold text-gray-700 mb-2">Kelas</label> <input type="text" id="edit-class" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none">
+     </div>
+     <div><label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Kelamin</label> <select id="edit-gender" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none bg-white"> <option value="">Pilih</option> <option value="L">L</option> <option value="P">P</option> </select>
+     </div><button onclick="saveEditStudent()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl btn-hover shadow-lg"> Simpan Perubahan </button>
+     <div id="edit-error" class="hidden p-3 bg-red-100 rounded-xl text-red-700 text-center text-sm font-semibold"></div>
+     <div id="edit-success" class="hidden p-3 bg-green-100 rounded-xl text-green-700 text-center text-sm font-semibold">
+      ✅ Data berhasil diupdate!
+     </div>
+    </div>
+   </div>
+  </div><!-- Delete Confirmation Modal -->
+  <div id="modal-delete-confirm" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50" style="max-width: 420px; margin: 0 auto;" onclick="if(event.target === this) closeDeleteConfirm()">
+   <div class="bg-white rounded-3xl p-6 m-5 max-w-sm w-full shadow-2xl" onclick="event.stopPropagation()">
+    <div class="text-center mb-5">
+     <div class="text-6xl mb-3">
+      ⚠️
+     </div>
+     <h2 class="text-xl font-bold text-gray-800 mb-2">Konfirmasi Hapus</h2>
+     <p class="text-gray-600 text-sm mb-2">Yakin hapus siswa:</p>
+     <p class="text-lg font-bold text-red-600" id="delete-student-name"></p>
+    </div>
+    <div class="space-y-3"><button onclick="confirmDelete()" class="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-xl btn-hover shadow-lg"> Ya, Hapus </button> <button onclick="closeDeleteConfirm()" class="w-full py-3 bg-gray-200 text-gray-700 font-bold rounded-xl btn-hover"> Batal </button>
+    </div>
+   </div>
+  </div><!-- Absen Modal -->
+  <div id="modal-absen" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50" style="max-width: 420px; margin: 0 auto;" onclick="if(event.target === this) closeAbsenModal()">
+   <div class="bg-white rounded-3xl p-6 m-5 max-w-sm w-full shadow-2xl max-h-[90%] overflow-auto" onclick="event.stopPropagation()">
+    <div class="flex justify-between items-center mb-5">
+     <h2 class="text-2xl font-bold text-gray-800">📝 Proses Absensi</h2><button onclick="closeAbsenModal()" class="text-gray-400 hover:text-gray-600 text-3xl">✕</button>
+    </div>
+    <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 mb-4">
+     <p class="text-sm font-semibold text-indigo-700">📅 <span id="absen-modal-date"></span></p>
+     <p class="text-sm font-semibold text-indigo-700">🎓 <span id="absen-modal-class"></span></p>
+     <p class="text-sm font-semibold text-indigo-700">👥 <span id="absen-modal-count"></span> siswa</p>
+    </div>
+    <div class="max-h-96 overflow-auto mb-4 space-y-3" id="absen-modal-list"></div>
+    <div class="space-y-3"><button onclick="saveAbsensi()" id="btn-save-absen" class="w-full py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 💾 Simpan Absensi </button> <button onclick="closeAbsenModal()" class="w-full py-3 bg-gray-200 text-gray-700 font-bold rounded-xl btn-hover"> Batal </button>
+    </div>
+    <div id="absen-modal-success" class="hidden mt-4 p-4 bg-green-100 rounded-xl text-green-700 text-center font-semibold"></div>
+    <div id="absen-modal-error" class="hidden mt-4 p-4 bg-red-100 rounded-xl text-red-700 text-center font-semibold"></div>
+   </div>
+  </div><!-- Edit Absensi Modal -->
+  <div id="modal-edit-absen" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50" style="max-width: 420px; margin: 0 auto;" onclick="if(event.target === this) closeEditAbsen()">
+   <div class="bg-white rounded-3xl p-6 m-5 max-w-sm w-full shadow-2xl" onclick="event.stopPropagation()">
+    <div class="flex justify-between items-center mb-5">
+     <h2 class="text-2xl font-bold text-gray-800">✏️ Edit Kehadiran</h2><button onclick="closeEditAbsen()" class="text-gray-400 hover:text-gray-600 text-3xl">✕</button>
+    </div>
+    <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 mb-4">
+     <p class="text-sm font-semibold text-indigo-700">👤 <span id="edit-absen-name"></span></p>
+     <p class="text-sm font-semibold text-indigo-700">📅 <span id="edit-absen-date"></span></p>
+    </div>
+    <div class="mb-5">
+     <p class="text-sm font-semibold text-gray-700 mb-3">Pilih Status:</p>
+     <div class="grid grid-cols-2 gap-2"><button onclick="selectStatus('Hadir')" data-status="Hadir" class="edit-status-btn px-4 py-3 rounded-xl text-sm font-bold border-2 border-green-500 bg-green-50 hover:bg-green-500 hover:text-white transition-all"> ✅ Hadir </button> <button onclick="selectStatus('Sakit')" data-status="Sakit" class="edit-status-btn px-4 py-3 rounded-xl text-sm font-bold border-2 border-amber-500 bg-amber-50 hover:bg-amber-500 hover:text-white transition-all"> 🤒 Sakit </button> <button onclick="selectStatus('Izin')" data-status="Izin" class="edit-status-btn px-4 py-3 rounded-xl text-sm font-bold border-2 border-blue-500 bg-blue-50 hover:bg-blue-500 hover:text-white transition-all"> 📝 Izin </button> <button onclick="selectStatus('Alpha')" data-status="Alpha" class="edit-status-btn px-4 py-3 rounded-xl text-sm font-bold border-2 border-red-500 bg-red-50 hover:bg-red-500 hover:text-white transition-all"> ❌ Alpha </button>
+     </div>
+    </div>
+    <div class="space-y-3"><button onclick="saveEditAbsen()" class="w-full py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold rounded-xl btn-hover shadow-lg"> 💾 Simpan </button> <button onclick="closeEditAbsen()" class="w-full py-3 bg-gray-200 text-gray-700 font-bold rounded-xl btn-hover"> Batal </button>
+    </div>
+    <div id="edit-absen-success" class="hidden mt-4 p-4 bg-green-100 rounded-xl text-green-700 text-center font-semibold"></div>
+    <div id="edit-absen-error" class="hidden mt-4 p-4 bg-red-100 rounded-xl text-red-700 text-center font-semibold"></div>
+   </div>
+  </div>
+  <script>
+    // Kode akan dilanjutkan di bagian berikutnya karena terlalu panjang
+    // Saya akan menulis SEMUA fungsi JavaScript secara lengkap
+    
+    const APP_STATE = {
+      students: [],
+      attendance: [],
+      settings: {
+        school: '',
+        subject: '',
+        teacher: ''
+      },
+      absensiStatus: {},
+      editingStudent: null,
+      deletingStudent: null,
+      editingAbsen: null,
+      editAbsenSelectedStatus: null
+    };
+
+    const STORAGE = {
+      STUDENTS: 'app_students',
+      ATTENDANCE: 'app_attendance',
+      SETTINGS: 'app_settings',
+      WELCOME_SHOWN: 'app_welcome_shown'
+    };
+
+    let dashboardInterval = null;
+    let rotateInterval = null;
+
+    // Initialize
+    function initApp() {
+      loadFromStorage();
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('absen-date').value = today;
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+      startRotatingText();
+      updateAllViews();
+      initializeYearDropdowns();
+      initializeExportYearDropdowns();
+      initializeSendYearDropdown();
+      startDashboardRotation();
+      updateDateDisplay();
+      
+      // Check and show welcome notification
+      checkAndShowWelcome();
+    }
+
+    function loadFromStorage() {
+      try {
+        const students = localStorage.getItem(STORAGE.STUDENTS);
+        const attendance = localStorage.getItem(STORAGE.ATTENDANCE);
+        const settings = localStorage.getItem(STORAGE.SETTINGS);
+        
+        if (students) APP_STATE.students = JSON.parse(students);
+        if (attendance) APP_STATE.attendance = JSON.parse(attendance);
+        if (settings) APP_STATE.settings = { ...APP_STATE.settings, ...JSON.parse(settings) };
+      } catch (error) {
+        console.error('Error loading:', error);
+      }
+    }
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem(STORAGE.STUDENTS, JSON.stringify(APP_STATE.students));
+        localStorage.setItem(STORAGE.ATTENDANCE, JSON.stringify(APP_STATE.attendance));
+        localStorage.setItem(STORAGE.SETTINGS, JSON.stringify(APP_STATE.settings));
+        
+        // Show save animation
+        showSaveAnimation();
+      } catch (error) {
+        console.error('Error saving:', error);
+      }
+    }
+
+    function generateId() {
+      return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function updateAllViews() {
+      updateStudentFilters();
+      updateExportFilters();
+      renderStudentTable();
+      renderHistory();
+      renderStats();
+      updateDashboard();
+      updateRecentActivity();
+    }
+
+    // DateTime
+    function updateDateTime() {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('id-ID', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      });
+      const timeStr = now.toLocaleTimeString('id-ID', { 
+        hour: '2-digit', minute: '2-digit', second: '2-digit' 
+      });
+      
+      document.getElementById('display-date').textContent = dateStr;
+      document.getElementById('display-time').textContent = timeStr;
+    }
+
+    function updateDateDisplay() {
+      const dateInput = document.getElementById('absen-date');
+      if (!dateInput.value) return;
+      
+      const date = new Date(dateInput.value + 'T00:00:00');
+      const formatted = date.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      document.getElementById('date-display-text').textContent = formatted;
+    }
+
+    // Rotating Text
+    function startRotatingText() {
+      const texts = [
+        APP_STATE.settings.school || 'Belum diisi',
+        APP_STATE.settings.subject || 'Belum diisi',
+        APP_STATE.settings.teacher || 'Belum diisi'
+      ];
+      
+      let index = 0;
+      const element = document.getElementById('rotating-text');
+      
+      if (rotateInterval) clearInterval(rotateInterval);
+      
+      element.textContent = texts[0];
+      
+      rotateInterval = setInterval(() => {
+        element.style.opacity = '0';
+        setTimeout(() => {
+          index = (index + 1) % texts.length;
+          element.textContent = texts[index];
+          element.style.opacity = '0.9';
+        }, 300);
+      }, 3000);
+    }
+
+    // Dashboard
+    function startDashboardRotation() {
+      if (dashboardInterval) return;
+      updateDashboard();
+      dashboardInterval = setInterval(updateDashboard, 5000);
+    }
+
+    function stopDashboardRotation() {
+      if (dashboardInterval) {
+        clearInterval(dashboardInterval);
+        dashboardInterval = null;
+      }
+    }
+
+    function updateDashboard() {
+      const classes = [...new Set(APP_STATE.students.map(s => s.class_name))];
+      const today = new Date().toISOString().split('T')[0];
+      
+      if (classes.length === 0) {
+        document.getElementById('dashboard-class').textContent = '-';
+        document.getElementById('dashboard-students').textContent = '0 Siswa';
+        document.getElementById('dashboard-gender').textContent = 'L: 0 | P: 0';
+        document.getElementById('dashboard-stat-h').textContent = '0';
+        document.getElementById('dashboard-stat-s').textContent = '0';
+        document.getElementById('dashboard-stat-i').textContent = '0';
+        document.getElementById('dashboard-stat-a').textContent = '0';
+        document.getElementById('dashboard-percent').textContent = '0%';
+        return;
+      }
+      
+      const currentIndex = classes.indexOf(document.getElementById('dashboard-class').textContent);
+      const nextIndex = (currentIndex + 1) % classes.length;
+      const selectedClass = classes[nextIndex];
+      
+      const studentsInClass = APP_STATE.students.filter(s => s.class_name === selectedClass);
+      const lCount = studentsInClass.filter(s => s.gender === 'L').length;
+      const pCount = studentsInClass.filter(s => s.gender === 'P').length;
+      
+      const todayAttendance = APP_STATE.attendance.filter(a => 
+        a.date === today && a.class_name === selectedClass
+      );
+      
+      const hadir = todayAttendance.filter(a => a.status === 'Hadir').length;
+      const sakit = todayAttendance.filter(a => a.status === 'Sakit').length;
+      const izin = todayAttendance.filter(a => a.status === 'Izin').length;
+      const alpha = todayAttendance.filter(a => a.status === 'Alpha').length;
+      const total = hadir + sakit + izin + alpha;
+      const percent = total > 0 ? Math.round((hadir / total) * 100) : 0;
+      
+      document.getElementById('dashboard-class').textContent = selectedClass;
+      document.getElementById('dashboard-students').textContent = studentsInClass.length + ' Siswa';
+      document.getElementById('dashboard-gender').textContent = `L: ${lCount} | P: ${pCount}`;
+      document.getElementById('dashboard-stat-h').textContent = hadir;
+      document.getElementById('dashboard-stat-s').textContent = sakit;
+      document.getElementById('dashboard-stat-i').textContent = izin;
+      document.getElementById('dashboard-stat-a').textContent = alpha;
+      document.getElementById('dashboard-percent').textContent = percent + '%';
+    }
+
+    let recentActivityIndex = 0;
+    let recentActivityInterval = null;
+
+    function updateRecentActivity() {
+      const today = new Date().toISOString().split('T')[0];
+      const todayAttendance = APP_STATE.attendance.filter(a => a.date === today);
+      
+      const container = document.getElementById('recent-list');
+      
+      if (todayAttendance.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">Belum ada absensi hari ini</div>';
+        
+        // Stop rotation if no data
+        if (recentActivityInterval) {
+          clearInterval(recentActivityInterval);
+          recentActivityInterval = null;
+        }
+        return;
+      }
+      
+      // Start rotation
+      if (!recentActivityInterval) {
+        recentActivityInterval = setInterval(() => {
+          rotateRecentActivity(todayAttendance);
+        }, 3000);
+      }
+      
+      // Show first 5 items initially
+      displayRecentActivity(todayAttendance);
+    }
+
+    function displayRecentActivity(data) {
+      const container = document.getElementById('recent-list');
+      const displayData = data.slice(0, 5);
+      
+      container.innerHTML = displayData.map(a => {
+        const statusIcon = {
+          'Hadir': '✔',
+          'Sakit': '🤒',
+          'Izin': 'ℹ',
+          'Alpha': '✖'
+        }[a.status] || '?';
+        
+        const statusColor = {
+          'Hadir': 'bg-green-100 text-green-700',
+          'Sakit': 'bg-amber-100 text-amber-700',
+          'Izin': 'bg-blue-100 text-blue-700',
+          'Alpha': 'bg-red-100 text-red-700'
+        }[a.status] || 'bg-gray-100 text-gray-700';
+        
+        return `
+          <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between hover:bg-gray-100 transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-600">
+                ${a.student_name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">${a.student_name}</p>
+                <p class="text-xs text-gray-500">${a.class_name}</p>
+              </div>
+            </div>
+            <span class="${statusColor} px-2 py-1 rounded-full text-xs font-bold">
+              ${statusIcon}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function rotateRecentActivity(data) {
+      if (data.length <= 5) return;
+      
+      const container = document.getElementById('recent-list');
+      container.style.opacity = '0';
+      
+      setTimeout(() => {
+        recentActivityIndex = (recentActivityIndex + 1) % data.length;
+        
+        // Get 5 items starting from current index (circular)
+        const displayData = [];
+        for (let i = 0; i < 5 && i < data.length; i++) {
+          displayData.push(data[(recentActivityIndex + i) % data.length]);
+        }
+        
+        container.innerHTML = displayData.map(a => {
+          const statusIcon = {
+            'Hadir': '✔',
+            'Sakit': '🤒',
+            'Izin': 'ℹ',
+            'Alpha': '✖'
+          }[a.status] || '?';
+          
+          const statusColor = {
+            'Hadir': 'bg-green-100 text-green-700',
+            'Sakit': 'bg-amber-100 text-amber-700',
+            'Izin': 'bg-blue-100 text-blue-700',
+            'Alpha': 'bg-red-100 text-red-700'
+          }[a.status] || 'bg-gray-100 text-gray-700';
+          
+          return `
+            <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between hover:bg-gray-100 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-600">
+                  ${a.student_name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-800 text-sm">${a.student_name}</p>
+                  <p class="text-xs text-gray-500">${a.class_name}</p>
+                </div>
+              </div>
+              <span class="${statusColor} px-2 py-1 rounded-full text-xs font-bold">
+                ${statusIcon}
+              </span>
+            </div>
+          `;
+        }).join('');
+        
+        container.style.opacity = '1';
+      }, 300);
+    }
+
+    // Navigation
+    function goToTab(tabName) {
+      ['beranda', 'siswa', 'absen', 'rekap', 'unduh'].forEach(tab => {
+        const content = document.getElementById('tab-' + tab);
+        const nav = document.getElementById('nav-' + tab);
+        
+        if (tab === tabName) {
+          content.classList.remove('hidden');
+          nav.classList.remove('bg-gray-100', 'text-gray-500');
+          nav.classList.add('bg-indigo-600', 'text-white');
+        } else {
+          content.classList.add('hidden');
+          nav.classList.remove('bg-indigo-600', 'text-white');
+          nav.classList.add('bg-gray-100', 'text-gray-500');
+        }
+      });
+      
+      const header = document.getElementById('header-section');
+      if (tabName === 'beranda') {
+        header.classList.remove('hidden');
+        startDashboardRotation();
+      } else {
+        header.classList.add('hidden');
+        stopDashboardRotation();
+      }
+      
+      if (tabName === 'rekap') switchRekapSubTab('history');
+      if (tabName === 'unduh') switchUnduhSubTab('unduh');
+    }
+
+    function switchRekapSubTab(subTab) {
+      const historyBtn = document.getElementById('rekap-subtab-history');
+      const statsBtn = document.getElementById('rekap-subtab-stats');
+      const historyContent = document.getElementById('rekap-history');
+      const statsContent = document.getElementById('rekap-stats');
+      
+      if (subTab === 'history') {
+        historyBtn.classList.add('bg-white', 'text-indigo-600');
+        historyBtn.classList.remove('text-white');
+        statsBtn.classList.remove('bg-white', 'text-indigo-600');
+        statsBtn.classList.add('text-white');
+        historyContent.classList.remove('hidden');
+        statsContent.classList.add('hidden');
+      } else {
+        statsBtn.classList.add('bg-white', 'text-indigo-600');
+        statsBtn.classList.remove('text-white');
+        historyBtn.classList.remove('bg-white', 'text-indigo-600');
+        historyBtn.classList.add('text-white');
+        statsContent.classList.remove('hidden');
+        historyContent.classList.add('hidden');
+      }
+    }
+
+    function switchUnduhSubTab(subTab) {
+      const unduhBtn = document.getElementById('unduh-subtab-unduh');
+      const kirimBtn = document.getElementById('unduh-subtab-kirim');
+      const saveBtn = document.getElementById('unduh-subtab-save');
+      const unduhContent = document.getElementById('unduh-unduh');
+      const kirimContent = document.getElementById('unduh-kirim');
+      const saveContent = document.getElementById('unduh-save');
+      
+      [unduhBtn, kirimBtn, saveBtn].forEach(btn => {
+        btn.classList.remove('bg-white', 'text-indigo-600');
+        btn.classList.add('text-white');
+      });
+      
+      [unduhContent, kirimContent, saveContent].forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      if (subTab === 'unduh') {
+        unduhBtn.classList.add('bg-white', 'text-indigo-600');
+        unduhBtn.classList.remove('text-white');
+        unduhContent.classList.remove('hidden');
+      } else if (subTab === 'kirim') {
+        kirimBtn.classList.add('bg-white', 'text-indigo-600');
+        kirimBtn.classList.remove('text-white');
+        kirimContent.classList.remove('hidden');
+      } else if (subTab === 'save') {
+        saveBtn.classList.add('bg-white', 'text-indigo-600');
+        saveBtn.classList.remove('text-white');
+        saveContent.classList.remove('hidden');
+      }
+    }
+
+    // Settings Modal
+    function openSettings() {
+      document.getElementById('setting-school').value = APP_STATE.settings.school;
+      document.getElementById('setting-subject').value = APP_STATE.settings.subject;
+      document.getElementById('setting-teacher').value = APP_STATE.settings.teacher;
+      document.getElementById('modal-settings').classList.remove('hidden');
+      document.getElementById('settings-error').classList.add('hidden');
+      document.getElementById('settings-success').classList.add('hidden');
+    }
+
+    function closeSettings() {
+      // Only allow closing if all settings have been filled
+      const school = APP_STATE.settings.school.trim();
+      const subject = APP_STATE.settings.subject.trim();
+      const teacher = APP_STATE.settings.teacher.trim();
+      
+      if (school && subject && teacher) {
+        document.getElementById('modal-settings').classList.add('hidden');
+      }
+    }
+
+    function saveSettings() {
+      const school = document.getElementById('setting-school').value.trim();
+      const subject = document.getElementById('setting-subject').value.trim();
+      const teacher = document.getElementById('setting-teacher').value.trim();
+      
+      const errorEl = document.getElementById('settings-error');
+      const successEl = document.getElementById('settings-success');
+      
+      if (!school || !subject || !teacher) {
+        errorEl.textContent = '⚠️ Semua field harus diisi!';
+        errorEl.classList.remove('hidden');
+        successEl.classList.add('hidden');
+        return;
+      }
+      
+      APP_STATE.settings = { school, subject, teacher };
+      saveToStorage();
+      startRotatingText();
+      
+      // Mark settings as completed
+      localStorage.setItem(STORAGE.WELCOME_SHOWN, 'true');
+      
+      errorEl.classList.add('hidden');
+      successEl.classList.remove('hidden');
+      
+      setTimeout(() => {
+        closeSettings();
+      }, 1500);
+    }
+    
+    // Welcome Notification Functions
+    function checkAndShowWelcome() {
+      const welcomeShown = localStorage.getItem(STORAGE.WELCOME_SHOWN);
+      
+      // Check if settings are empty (not filled)
+      const isEmptySettings = 
+        !APP_STATE.settings.school ||
+        !APP_STATE.settings.subject ||
+        !APP_STATE.settings.teacher;
+      
+      // Show welcome if never shown before OR if settings are still empty
+      if (!welcomeShown || isEmptySettings) {
+        setTimeout(() => {
+          document.getElementById('modal-welcome').classList.remove('hidden');
+        }, 500);
+      }
+    }
+    
+    function closeWelcomeAndOpenSettings() {
+      document.getElementById('modal-welcome').classList.add('hidden');
+      setTimeout(() => {
+        openSettings();
+      }, 300);
+    }
+
+    // Students
+    function updateStudentFilters() {
+      const classes = [...new Set(APP_STATE.students.map(s => s.class_name))].sort();
+      
+      const filterSelect = document.getElementById('student-class-filter');
+      const currentValue = filterSelect.value;
+      filterSelect.innerHTML = '<option value="">Semua Kelas</option>';
+      classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls;
+        option.textContent = cls;
+        if (cls === currentValue) option.selected = true;
+        filterSelect.appendChild(option);
+      });
+      
+      const absenSelect = document.getElementById('absen-class');
+      const absenCurrentValue = absenSelect.value;
+      absenSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+      classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls;
+        option.textContent = cls;
+        if (cls === absenCurrentValue) option.selected = true;
+        absenSelect.appendChild(option);
+      });
+      
+      const historySelect = document.getElementById('history-class-filter');
+      const historyCurrentValue = historySelect.value;
+      historySelect.innerHTML = '<option value="">Semua Kelas</option>';
+      classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls;
+        option.textContent = cls;
+        if (cls === historyCurrentValue) option.selected = true;
+        historySelect.appendChild(option);
+      });
+      
+      const statsSelect = document.getElementById('stats-class');
+      const statsCurrentValue = statsSelect.value;
+      statsSelect.innerHTML = '<option value="">-- Pilih Kelas --</option><option value="all">Semua Kelas</option>';
+      classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls;
+        option.textContent = cls;
+        if (cls === statsCurrentValue) option.selected = true;
+        statsSelect.appendChild(option);
+      });
+    }
+
+    function renderStudentTable() {
+      const filterClass = document.getElementById('student-class-filter').value;
+      let filtered = APP_STATE.students;
+      
+      if (filterClass) {
+        filtered = filtered.filter(s => s.class_name === filterClass);
+      }
+      
+      document.getElementById('student-count-text').textContent = filtered.length + ' siswa';
+      
+      const tbody = document.getElementById('student-table-body');
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 py-10">Belum ada data siswa</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.map((s, i) => `
+        <tr class="border-b border-gray-100 hover:bg-gray-50">
+          <td class="p-3 text-sm">${i + 1}</td>
+          <td class="p-3 text-sm font-semibold">${s.name}</td>
+          <td class="p-3 text-sm">${s.nisn}</td>
+          <td class="p-3 text-sm">${s.class_name}</td>
+          <td class="p-3 text-sm">${s.gender}</td>
+          <td class="p-3 text-center">
+            <button onclick="openEditStudent('${s.id}')" class="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-lg hover:bg-blue-600 mr-1">
+              ✏️
+            </button>
+            <button onclick="openDeleteConfirm('${s.id}')" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openAddStudent() {
+      document.getElementById('add-method-selection').classList.remove('hidden');
+      document.getElementById('add-manual-form').classList.add('hidden');
+      document.getElementById('add-upload-form').classList.add('hidden');
+      document.getElementById('modal-add-student').classList.remove('hidden');
+    }
+
+    function closeAddStudent() {
+      document.getElementById('modal-add-student').classList.add('hidden');
+    }
+
+    function selectMethod(method) {
+      document.getElementById('add-method-selection').classList.add('hidden');
+      
+      if (method === 'manual') {
+        document.getElementById('add-manual-form').classList.remove('hidden');
+        document.getElementById('manual-name').value = '';
+        document.getElementById('manual-nisn').value = '';
+        document.getElementById('manual-class').value = '';
+        document.getElementById('manual-gender').value = '';
+        document.getElementById('manual-error').classList.add('hidden');
+        document.getElementById('manual-success').classList.add('hidden');
+      } else if (method === 'upload') {
+        document.getElementById('add-upload-form').classList.remove('hidden');
+        document.getElementById('excel-file').value = '';
+        document.getElementById('upload-error').classList.add('hidden');
+        document.getElementById('upload-success').classList.add('hidden');
+      }
+    }
+
+    function backToMethodSelection() {
+      document.getElementById('add-method-selection').classList.remove('hidden');
+      document.getElementById('add-manual-form').classList.add('hidden');
+      document.getElementById('add-upload-form').classList.add('hidden');
+    }
+
+    function saveManualStudent() {
+      const name = document.getElementById('manual-name').value.trim();
+      const nisn = document.getElementById('manual-nisn').value.trim();
+      const className = document.getElementById('manual-class').value.trim();
+      const gender = document.getElementById('manual-gender').value;
+      
+      const errorEl = document.getElementById('manual-error');
+      const successEl = document.getElementById('manual-success');
+      
+      if (!name || !nisn || !className || !gender) {
+        errorEl.textContent = '⚠️ Semua field harus diisi!';
+        errorEl.classList.remove('hidden');
+        successEl.classList.add('hidden');
+        return;
+      }
+      
+      const newStudent = {
+        id: generateId(),
+        name,
+        nisn,
+        class_name: className,
+        gender
+      };
+      
+      APP_STATE.students.push(newStudent);
+      saveToStorage();
+      updateAllViews();
+      
+      errorEl.classList.add('hidden');
+      successEl.classList.remove('hidden');
+      
+      setTimeout(() => {
+        closeAddStudent();
+      }, 1500);
+    }
+
+    function processExcel() {
+      const fileInput = document.getElementById('excel-file');
+      const file = fileInput.files[0];
+      
+      const errorEl = document.getElementById('upload-error');
+      const successEl = document.getElementById('upload-success');
+      
+      if (!file) {
+        errorEl.textContent = '⚠️ Pilih file Excel terlebih dahulu!';
+        errorEl.classList.remove('hidden');
+        successEl.classList.add('hidden');
+        return;
+      }
+      
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          
+          if (jsonData.length < 2) {
+            errorEl.textContent = '⚠️ File Excel kosong!';
+            errorEl.classList.remove('hidden');
+            successEl.classList.add('hidden');
+            return;
+          }
+          
+          let addedCount = 0;
+          
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            if (row.length < 4) continue;
+            
+            const name = String(row[0] || '').trim();
+            const nisn = String(row[1] || '').trim();
+            const className = String(row[2] || '').trim();
+            const gender = String(row[3] || '').trim().toUpperCase();
+            
+            if (!name || !nisn || !className || !gender) continue;
+            if (gender !== 'L' && gender !== 'P') continue;
+            
+            const newStudent = {
+              id: generateId(),
+              name,
+              nisn,
+              class_name: className,
+              gender
+            };
+            
+            APP_STATE.students.push(newStudent);
+            addedCount++;
+          }
+          
+          if (addedCount === 0) {
+            errorEl.textContent = '⚠️ Tidak ada data valid!';
+            errorEl.classList.remove('hidden');
+            successEl.classList.add('hidden');
+            return;
+          }
+          
+          saveToStorage();
+          updateAllViews();
+          
+          errorEl.classList.add('hidden');
+          successEl.textContent = `✅ ${addedCount} siswa berhasil ditambahkan!`;
+          successEl.classList.remove('hidden');
+          
+          setTimeout(() => {
+            closeAddStudent();
+          }, 1500);
+          
+        } catch (error) {
+          errorEl.textContent = '⚠️ Error membaca file Excel!';
+          errorEl.classList.remove('hidden');
+          successEl.classList.add('hidden');
+        }
+      };
+      
+      reader.readAsArrayBuffer(file);
+    }
+
+    function openEditStudent(id) {
+      const student = APP_STATE.students.find(s => s.id === id);
+      if (!student) return;
+      
+      APP_STATE.editingStudent = id;
+      document.getElementById('edit-name').value = student.name;
+      document.getElementById('edit-nisn').value = student.nisn;
+      document.getElementById('edit-class').value = student.class_name;
+      document.getElementById('edit-gender').value = student.gender;
+      document.getElementById('modal-edit-student').classList.remove('hidden');
+      document.getElementById('edit-error').classList.add('hidden');
+      document.getElementById('edit-success').classList.add('hidden');
+    }
+
+    function closeEditStudent() {
+      document.getElementById('modal-edit-student').classList.add('hidden');
+      APP_STATE.editingStudent = null;
+    }
+
+    function saveEditStudent() {
+      const name = document.getElementById('edit-name').value.trim();
+      const nisn = document.getElementById('edit-nisn').value.trim();
+      const className = document.getElementById('edit-class').value.trim();
+      const gender = document.getElementById('edit-gender').value;
+      
+      const errorEl = document.getElementById('edit-error');
+      const successEl = document.getElementById('edit-success');
+      
+      if (!name || !nisn || !className || !gender) {
+        errorEl.textContent = '⚠️ Semua field harus diisi!';
+        errorEl.classList.remove('hidden');
+        successEl.classList.add('hidden');
+        return;
+      }
+      
+      const student = APP_STATE.students.find(s => s.id === APP_STATE.editingStudent);
+      if (!student) return;
+      
+      student.name = name;
+      student.nisn = nisn;
+      student.class_name = className;
+      student.gender = gender;
+      
+      saveToStorage();
+      updateAllViews();
+      
+      errorEl.classList.add('hidden');
+      successEl.classList.remove('hidden');
+      
+      setTimeout(() => {
+        closeEditStudent();
+      }, 1500);
+    }
+
+    function openDeleteConfirm(id) {
+      const student = APP_STATE.students.find(s => s.id === id);
+      if (!student) return;
+      
+      APP_STATE.deletingStudent = id;
+      document.getElementById('delete-student-name').textContent = student.name;
+      document.getElementById('modal-delete-confirm').classList.remove('hidden');
+    }
+
+    function closeDeleteConfirm() {
+      document.getElementById('modal-delete-confirm').classList.add('hidden');
+      APP_STATE.deletingStudent = null;
+    }
+
+    function confirmDelete() {
+      const index = APP_STATE.students.findIndex(s => s.id === APP_STATE.deletingStudent);
+      if (index > -1) {
+        APP_STATE.students.splice(index, 1);
+        saveToStorage();
+        updateAllViews();
+      }
+      closeDeleteConfirm();
+    }
+
+    // Absensi
+    function loadStudentList() {
+      const className = document.getElementById('absen-class').value;
+      const date = document.getElementById('absen-date').value;
+      
+      if (!className || !date) {
+        document.getElementById('student-list-container').classList.add('hidden');
+        return;
+      }
+      
+      const students = APP_STATE.students.filter(s => s.class_name === className);
+      
+      if (students.length === 0) {
+        document.getElementById('student-list-container').classList.add('hidden');
+        return;
+      }
+      
+      document.getElementById('student-list-count').textContent = students.length + ' siswa';
+      
+      const tbody = document.getElementById('student-list-body');
+      tbody.innerHTML = students.map((s, i) => {
+        const existing = APP_STATE.attendance.find(a => 
+          a.student_id === s.id && a.date === date
+        );
+        
+        const status = existing ? existing.status : '-';
+        const statusColor = {
+          'Hadir': 'text-green-600',
+          'Sakit': 'text-amber-600',
+          'Izin': 'text-blue-600',
+          'Alpha': 'text-red-600'
+        }[status] || 'text-gray-400';
+        
+        return `
+          <tr class="border-b border-gray-100 hover:bg-gray-50">
+            <td class="p-3 text-sm">${i + 1}</td>
+            <td class="p-3 text-sm font-semibold">${s.name}</td>
+            <td class="p-3 text-center">
+              <span class="${statusColor} font-bold text-sm">${status}</span>
+            </td>
+            <td class="p-3 text-center">
+              ${existing ? `
+                <button onclick="openEditAbsen('${existing.id}')" class="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-lg hover:bg-blue-600">
+                  Edit
+                </button>
+              ` : '-'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      document.getElementById('student-list-container').classList.remove('hidden');
+    }
+
+    function openAbsenModal() {
+      const className = document.getElementById('absen-class').value;
+      const date = document.getElementById('absen-date').value;
+      
+      if (!className || !date) return;
+      
+      const students = APP_STATE.students.filter(s => s.class_name === className);
+      
+      APP_STATE.absensiStatus = {};
+      students.forEach(s => {
+        const existing = APP_STATE.attendance.find(a => 
+          a.student_id === s.id && a.date === date
+        );
+        APP_STATE.absensiStatus[s.id] = existing ? existing.status : 'Hadir';
+      });
+      
+      const dateObj = new Date(date + 'T00:00:00');
+      const formatted = dateObj.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      document.getElementById('absen-modal-date').textContent = formatted;
+      document.getElementById('absen-modal-class').textContent = className;
+      document.getElementById('absen-modal-count').textContent = students.length;
+      
+      const listEl = document.getElementById('absen-modal-list');
+      listEl.innerHTML = students.map((s, i) => `
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="font-semibold text-gray-800 mb-2">${i + 1}. ${s.name}</p>
+          <div class="grid grid-cols-4 gap-2">
+            <button onclick="setAbsenStatus('${s.id}', 'Hadir')" 
+              class="absen-status-btn-${s.id} px-2 py-2 rounded-lg text-xs font-bold ${APP_STATE.absensiStatus[s.id] === 'Hadir' ? 'bg-green-500 text-white' : 'bg-white border-2 border-gray-200'}">
+              ✔ Hadir
+            </button>
+            <button onclick="setAbsenStatus('${s.id}', 'Sakit')" 
+              class="absen-status-btn-${s.id} px-2 py-2 rounded-lg text-xs font-bold ${APP_STATE.absensiStatus[s.id] === 'Sakit' ? 'bg-amber-500 text-white' : 'bg-white border-2 border-gray-200'}">
+              🤒 Sakit
+            </button>
+            <button onclick="setAbsenStatus('${s.id}', 'Izin')" 
+              class="absen-status-btn-${s.id} px-2 py-2 rounded-lg text-xs font-bold ${APP_STATE.absensiStatus[s.id] === 'Izin' ? 'bg-blue-500 text-white' : 'bg-white border-2 border-gray-200'}">
+              📝 Izin
+            </button>
+            <button onclick="setAbsenStatus('${s.id}', 'Alpha')" 
+              class="absen-status-btn-${s.id} px-2 py-2 rounded-lg text-xs font-bold ${APP_STATE.absensiStatus[s.id] === 'Alpha' ? 'bg-red-500 text-white' : 'bg-white border-2 border-gray-200'}">
+              ✖ Alpha
+            </button>
+          </div>
+        </div>
+      `).join('');
+      
+      document.getElementById('modal-absen').classList.remove('hidden');
+      document.getElementById('absen-modal-success').classList.add('hidden');
+      document.getElementById('absen-modal-error').classList.add('hidden');
+    }
+
+    function closeAbsenModal() {
+      document.getElementById('modal-absen').classList.add('hidden');
+    }
+
+    function setAbsenStatus(studentId, status) {
+      APP_STATE.absensiStatus[studentId] = status;
+      
+      const buttons = document.querySelectorAll(`.absen-status-btn-${studentId}`);
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-green-500', 'bg-amber-500', 'bg-blue-500', 'bg-red-500', 'text-white');
+        btn.classList.add('bg-white', 'border-2', 'border-gray-200');
+      });
+      
+      const activeBtn = Array.from(buttons).find(btn => btn.textContent.includes(status === 'Hadir' ? 'Hadir' : status === 'Sakit' ? 'Sakit' : status === 'Izin' ? 'Izin' : 'Alpha'));
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'border-2', 'border-gray-200');
+        const colorClass = status === 'Hadir' ? 'bg-green-500' : status === 'Sakit' ? 'bg-amber-500' : status === 'Izin' ? 'bg-blue-500' : 'bg-red-500';
+        activeBtn.classList.add(colorClass, 'text-white');
+      }
+    }
+
+    function markAllHadir() {
+      const className = document.getElementById('absen-class').value;
+      const students = APP_STATE.students.filter(s => s.class_name === className);
+      
+      students.forEach(s => {
+        setAbsenStatus(s.id, 'Hadir');
+      });
+    }
+
+    function saveAbsensi() {
+      const className = document.getElementById('absen-class').value;
+      const date = document.getElementById('absen-date').value;
+      const now = new Date();
+      const time = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      
+      const students = APP_STATE.students.filter(s => s.class_name === className);
+      
+      students.forEach(s => {
+        const status = APP_STATE.absensiStatus[s.id];
+        
+        const existingIndex = APP_STATE.attendance.findIndex(a => 
+          a.student_id === s.id && a.date === date
+        );
+        
+        if (existingIndex > -1) {
+          APP_STATE.attendance[existingIndex].status = status;
+          APP_STATE.attendance[existingIndex].time = time;
+        } else {
+          APP_STATE.attendance.push({
+            id: generateId(),
+            student_id: s.id,
+            student_name: s.name,
+            class_name: className,
+            date: date,
+            time: time,
+            status: status
+          });
+        }
+      });
+      
+      saveToStorage();
+      updateAllViews();
+      loadStudentList();
+      
+      const successEl = document.getElementById('absen-modal-success');
+      successEl.textContent = `✅ Absensi ${className} berhasil disimpan!`;
+      successEl.classList.remove('hidden');
+      
+      setTimeout(() => {
+        closeAbsenModal();
+      }, 1500);
+    }
+
+    function openEditAbsen(attendanceId) {
+      const attendance = APP_STATE.attendance.find(a => a.id === attendanceId);
+      if (!attendance) return;
+      
+      APP_STATE.editingAbsen = attendanceId;
+      APP_STATE.editAbsenSelectedStatus = attendance.status;
+      
+      const dateObj = new Date(attendance.date + 'T00:00:00');
+      const formatted = dateObj.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      document.getElementById('edit-absen-name').textContent = attendance.student_name;
+      document.getElementById('edit-absen-date').textContent = formatted;
+      
+      document.querySelectorAll('.edit-status-btn').forEach(btn => {
+        if (btn.getAttribute('data-status') === attendance.status) {
+          const colorClass = attendance.status === 'Hadir' ? 'bg-green-500' : attendance.status === 'Sakit' ? 'bg-amber-500' : attendance.status === 'Izin' ? 'bg-blue-500' : 'bg-red-500';
+          btn.classList.add(colorClass, 'text-white');
+        } else {
+          btn.classList.remove('bg-green-500', 'bg-amber-500', 'bg-blue-500', 'bg-red-500', 'text-white');
+        }
+      });
+      
+      document.getElementById('modal-edit-absen').classList.remove('hidden');
+      document.getElementById('edit-absen-success').classList.add('hidden');
+      document.getElementById('edit-absen-error').classList.add('hidden');
+    }
+
+    function closeEditAbsen() {
+      document.getElementById('modal-edit-absen').classList.add('hidden');
+      APP_STATE.editingAbsen = null;
+      APP_STATE.editAbsenSelectedStatus = null;
+    }
+
+    function selectStatus(status) {
+      APP_STATE.editAbsenSelectedStatus = status;
+      
+      document.querySelectorAll('.edit-status-btn').forEach(btn => {
+        btn.classList.remove('bg-green-500', 'bg-amber-500', 'bg-blue-500', 'bg-red-500', 'text-white');
+        
+        if (btn.getAttribute('data-status') === status) {
+          const colorClass = status === 'Hadir' ? 'bg-green-500' : status === 'Sakit' ? 'bg-amber-500' : status === 'Izin' ? 'bg-blue-500' : 'bg-red-500';
+          btn.classList.add(colorClass, 'text-white');
+        }
+      });
+    }
+
+    function saveEditAbsen() {
+      if (!APP_STATE.editAbsenSelectedStatus) {
+        const errorEl = document.getElementById('edit-absen-error');
+        errorEl.textContent = '⚠️ Pilih status terlebih dahulu!';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      
+      const attendance = APP_STATE.attendance.find(a => a.id === APP_STATE.editingAbsen);
+      if (!attendance) return;
+      
+      attendance.status = APP_STATE.editAbsenSelectedStatus;
+      
+      saveToStorage();
+      updateAllViews();
+      loadStudentList();
+      
+      const successEl = document.getElementById('edit-absen-success');
+      successEl.textContent = '✅ Status berhasil diupdate!';
+      successEl.classList.remove('hidden');
+      
+      setTimeout(() => {
+        closeEditAbsen();
+      }, 1500);
+    }
+
+    // Rekap History
+    function renderHistory() {
+      const classFilter = document.getElementById('history-class-filter').value;
+      const nameSearch = document.getElementById('history-name-search').value.toLowerCase();
+      
+      let filtered = APP_STATE.attendance;
+      
+      if (classFilter) {
+        filtered = filtered.filter(a => a.class_name === classFilter);
+      }
+      
+      if (nameSearch) {
+        filtered = filtered.filter(a => a.student_name.toLowerCase().includes(nameSearch));
+      }
+      
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.date + 'T' + (a.time || '00:00'));
+        const dateB = new Date(b.date + 'T' + (b.time || '00:00'));
+        return dateB - dateA;
+      });
+      
+      document.getElementById('history-total').textContent = filtered.length + ' data';
+      
+      const listEl = document.getElementById('history-list');
+      
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="text-center text-gray-400 py-10">Belum ada data</div>';
+        return;
+      }
+      
+      listEl.innerHTML = filtered.map(a => {
+        const statusIcon = {
+          'Hadir': '✔',
+          'Sakit': '🤒',
+          'Izin': 'ℹ',
+          'Alpha': '✖'
+        }[a.status] || '?';
+        
+        const statusColor = {
+          'Hadir': 'bg-green-100 text-green-700',
+          'Sakit': 'bg-amber-100 text-amber-700',
+          'Izin': 'bg-blue-100 text-blue-700',
+          'Alpha': 'bg-red-100 text-red-700'
+        }[a.status] || 'bg-gray-100 text-gray-700';
+        
+        return `
+          <div class="bg-gray-50 rounded-xl p-3 hover:bg-gray-100 transition-all">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <p class="font-bold text-gray-800">${a.student_name}</p>
+                <p class="text-xs text-gray-500">${a.class_name}</p>
+              </div>
+              <span class="${statusColor} px-2 py-1 rounded-full text-xs font-bold">
+                ${statusIcon} ${a.status}
+              </span>
+            </div>
+            <p class="text-xs text-gray-600">📅 ${a.date} • ⏰ ${a.time || '-'}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Rekap Stats
+    function initializeYearDropdowns() {
+      const currentYear = new Date().getFullYear();
+      const select = document.getElementById('stats-year');
+      
+      select.innerHTML = '<option value="all">Semua Tahun</option>';
+      for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        if (year === currentYear) option.selected = true;
+        select.appendChild(option);
+      }
+    }
+
+    function renderStats() {
+      const month = document.getElementById('stats-month').value;
+      const year = document.getElementById('stats-year').value;
+      const className = document.getElementById('stats-class').value;
+      
+      if (!className) {
+        document.getElementById('stats-table-container').classList.add('hidden');
+        document.getElementById('stats-hadir').textContent = '0';
+        document.getElementById('stats-sakit').textContent = '0';
+        document.getElementById('stats-izin').textContent = '0';
+        document.getElementById('stats-alpha').textContent = '0';
+        document.getElementById('stats-percent').textContent = '0';
+        document.getElementById('stats-bar').style.width = '0%';
+        return;
+      }
+      
+      let filtered = APP_STATE.attendance;
+      
+      if (className !== 'all') {
+        filtered = filtered.filter(a => a.class_name === className);
+      }
+      
+      if (month !== 'all') {
+        filtered = filtered.filter(a => {
+          const aDate = new Date(a.date);
+          return (aDate.getMonth() + 1) == parseInt(month);
+        });
+      }
+      
+      if (year !== 'all') {
+        filtered = filtered.filter(a => {
+          const aDate = new Date(a.date);
+          return aDate.getFullYear() == parseInt(year);
+        });
+      }
+      
+      const hadir = filtered.filter(a => a.status === 'Hadir').length;
+      const sakit = filtered.filter(a => a.status === 'Sakit').length;
+      const izin = filtered.filter(a => a.status === 'Izin').length;
+      const alpha = filtered.filter(a => a.status === 'Alpha').length;
+      const total = hadir + sakit + izin + alpha;
+      const percent = total > 0 ? Math.round((hadir / total) * 100) : 0;
+      
+      document.getElementById('stats-hadir').textContent = hadir;
+      document.getElementById('stats-sakit').textContent = sakit;
+      document.getElementById('stats-izin').textContent = izin;
+      document.getElementById('stats-alpha').textContent = alpha;
+      document.getElementById('stats-percent').textContent = percent;
+      document.getElementById('stats-bar').style.width = percent + '%';
+      
+      let students = APP_STATE.students;
+      if (className !== 'all') {
+        students = students.filter(s => s.class_name === className);
+      }
+      
+      if (students.length === 0) {
+        document.getElementById('stats-table-container').classList.add('hidden');
+        return;
+      }
+      
+      const tbody = document.getElementById('stats-table-body');
+      tbody.innerHTML = students.map((s, i) => {
+        const studentFiltered = filtered.filter(a => a.student_id === s.id);
+        const sHadir = studentFiltered.filter(a => a.status === 'Hadir').length;
+        const sSakit = studentFiltered.filter(a => a.status === 'Sakit').length;
+        const sIzin = studentFiltered.filter(a => a.status === 'Izin').length;
+        const sAlpha = studentFiltered.filter(a => a.status === 'Alpha').length;
+        const sTotal = sHadir + sSakit + sIzin + sAlpha;
+        const sPercent = sTotal > 0 ? Math.round((sHadir / sTotal) * 100) : 0;
+        
+        return `
+          <tr class="border-b border-gray-100 hover:bg-gray-50">
+            <td class="p-3 text-center text-sm">${i + 1}</td>
+            <td class="p-3 text-sm font-semibold">${s.name}</td>
+            <td class="p-3 text-center text-sm">${sHadir}</td>
+            <td class="p-3 text-center text-sm">${sSakit}</td>
+            <td class="p-3 text-center text-sm">${sIzin}</td>
+            <td class="p-3 text-center text-sm">${sAlpha}</td>
+            <td class="p-3 text-center text-sm font-bold">${sPercent}%</td>
+          </tr>
+        `;
+      }).join('');
+      
+      document.getElementById('stats-table-container').classList.remove('hidden');
+    }
+
+    // Export Functions
+    function updateExportFilters() {
+      initializeExportYearDropdowns();
+      updateExportClassFilters();
+      initializeSendFilters();
+    }
+
+    function initializeExportYearDropdowns() {
+      const currentYear = new Date().getFullYear();
+      
+      ['export-history-year', 'export-rekap-year'].forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        
+        const currentValue = select.value;
+        select.innerHTML = '<option value="all">Semua Tahun</option>';
+        
+        for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+          const option = document.createElement('option');
+          option.value = year;
+          option.textContent = year;
+          if (year == currentValue) option.selected = true;
+          select.appendChild(option);
+        }
+        
+        if (!currentValue || currentValue === 'all') {
+          select.value = 'all';
+        }
+      });
+    }
+
+    function updateExportClassFilters() {
+      const classes = [...new Set(APP_STATE.students.map(s => s.class_name))].sort();
+      
+      ['export-history-class', 'export-rekap-class'].forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        
+        const currentValue = select.value;
+        select.innerHTML = '<option value="all">Semua Kelas</option>';
+        
+        classes.forEach(cls => {
+          const option = document.createElement('option');
+          option.value = cls;
+          option.textContent = cls;
+          if (cls === currentValue) option.selected = true;
+          select.appendChild(option);
+        });
+      });
+    }
+
+    function handleHistoryMonthChange() {
+      const monthSelect = document.getElementById('export-history-month');
+      const yearSelect = document.getElementById('export-history-year');
+      
+      if (monthSelect.value === 'all') {
+        yearSelect.innerHTML = '<option value="all" selected>Semua Tahun</option>';
+        yearSelect.value = 'all';
+      } else {
+        initializeExportYearDropdowns();
+      }
+    }
+
+    function handleRekapMonthChange() {
+      const monthSelect = document.getElementById('export-rekap-month');
+      const yearSelect = document.getElementById('export-rekap-year');
+      
+      if (monthSelect.value === 'all') {
+        yearSelect.innerHTML = '<option value="all">Semua Tahun</option>';
+      } else {
+        initializeExportYearDropdowns();
+      }
+    }
+
+    function filterDataForExport(data, month, year, className) {
+      let filtered = [...data];
+      
+      if (className !== 'all') {
+        filtered = filtered.filter(a => a.class_name === className);
+      }
+      
+      if (month !== 'all') {
+        filtered = filtered.filter(a => {
+          const aDate = new Date(a.date);
+          return (aDate.getMonth() + 1) == parseInt(month);
+        });
+      }
+      
+      if (year !== 'all') {
+        filtered = filtered.filter(a => {
+          const aDate = new Date(a.date);
+          return aDate.getFullYear() == parseInt(year);
+        });
+      }
+      
+      return filtered;
+    }
+
+    function exportHistoryExcel() {
+      const month = document.getElementById('export-history-month').value;
+      const year = document.getElementById('export-history-year').value;
+      const className = document.getElementById('export-history-class').value;
+      
+      const messageEl = document.getElementById('export-history-message');
+      
+      if (APP_STATE.attendance.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada data untuk diexport!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const filtered = filterDataForExport(APP_STATE.attendance, month, year, className);
+      
+      if (filtered.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada data sesuai filter!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const wb = XLSX.utils.book_new();
+      
+      // Check if "all months" is selected
+      if (month === 'all') {
+        // Group by year and month
+        const groupedData = {};
+        filtered.forEach(a => {
+          const date = new Date(a.date);
+          const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          if (!groupedData[yearMonth]) {
+            groupedData[yearMonth] = [];
+          }
+          groupedData[yearMonth].push(a);
+        });
+        
+        const sortedKeys = Object.keys(groupedData).sort();
+        
+        // Get all students
+        let students = APP_STATE.students;
+        if (className !== 'all') {
+          students = students.filter(s => s.class_name === className);
+        }
+        
+        // Sort students by class
+        students.sort((a, b) => a.class_name.localeCompare(b.class_name));
+        
+        const allData = [];
+        
+        // Header rows
+        allData.push(['LAPORAN RIWAYAT ABSENSI']);
+        allData.push([`Sekolah: ${APP_STATE.settings.school}`]);
+        allData.push([`Mata Pelajaran: ${APP_STATE.settings.subject}`]);
+        allData.push([`Guru: ${APP_STATE.settings.teacher}`]);
+        allData.push([]);
+        
+        const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        
+        sortedKeys.forEach(yearMonth => {
+          const [yr, mo] = yearMonth.split('-');
+          const monthName = monthNames[parseInt(mo)];
+          
+          allData.push([`${monthName} ${yr}`]);
+          
+          const monthData = groupedData[yearMonth];
+          
+          // Get unique dates
+          const dates = [...new Set(monthData.map(a => a.date))].sort();
+          
+          // Build header row
+          const headerRow = ['NO', 'NAMA', 'KELAS'];
+          dates.forEach(d => {
+            const dateObj = new Date(d);
+            headerRow.push(`${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`);
+          });
+          headerRow.push('H', 'S', 'I', 'A');
+          allData.push(headerRow);
+          
+          // Build data rows for each student, grouped by class
+          students.forEach((student, idx) => {
+            const row = [idx + 1, student.name, student.class_name];
+            
+            let h = 0, s = 0, i = 0, a = 0;
+            
+            dates.forEach(date => {
+              const attendance = monthData.find(att => att.student_id === student.id && att.date === date);
+              if (attendance) {
+                row.push(attendance.status);
+                if (attendance.status === 'Hadir') h++;
+                else if (attendance.status === 'Sakit') s++;
+                else if (attendance.status === 'Izin') i++;
+                else if (attendance.status === 'Alpha') a++;
+              } else {
+                row.push('');
+              }
+            });
+            
+            row.push(h, s, i, a);
+            allData.push(row);
+          });
+          
+          allData.push([]);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(allData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Riwayat Absensi');
+        
+      } else {
+        // Single month view
+        const date = new Date(filtered[0].date);
+        const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const monthName = monthNames[date.getMonth() + 1];
+        
+        let students = APP_STATE.students;
+        if (className !== 'all') {
+          students = students.filter(s => s.class_name === className);
+        }
+        
+        // Sort students by class
+        students.sort((a, b) => a.class_name.localeCompare(b.class_name));
+        
+        const dates = [...new Set(filtered.map(a => a.date))].sort();
+        
+        const allData = [];
+        allData.push(['LAPORAN RIWAYAT ABSENSI']);
+        allData.push([`Sekolah: ${APP_STATE.settings.school}`]);
+        allData.push([`Mata Pelajaran: ${APP_STATE.settings.subject}`]);
+        allData.push([`Guru: ${APP_STATE.settings.teacher}`]);
+        allData.push([]);
+        allData.push([`${monthName} ${year}`]);
+        
+        const headerRow = ['NO', 'NAMA', 'KELAS'];
+        dates.forEach(d => {
+          const dateObj = new Date(d);
+          headerRow.push(`${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`);
+        });
+        headerRow.push('H', 'S', 'I', 'A');
+        allData.push(headerRow);
+        
+        students.forEach((student, idx) => {
+          const row = [idx + 1, student.name, student.class_name];
+          
+          let h = 0, s = 0, i = 0, a = 0;
+          
+          dates.forEach(date => {
+            const attendance = filtered.find(att => att.student_id === student.id && att.date === date);
+            if (attendance) {
+              row.push(attendance.status);
+              if (attendance.status === 'Hadir') h++;
+              else if (attendance.status === 'Sakit') s++;
+              else if (attendance.status === 'Izin') i++;
+              else if (attendance.status === 'Alpha') a++;
+            } else {
+              row.push('');
+            }
+          });
+          
+          row.push(h, s, i, a);
+          allData.push(row);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(allData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Riwayat Absensi');
+      }
+      
+      const filename = `Riwayat_Absensi_${className === 'all' ? 'Semua' : className}_${Date.now()}.xlsx`;
+      XLSX.writeFile(wb, filename);
+      
+      messageEl.textContent = `✅ ${filtered.length} data berhasil diexport!`;
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    function exportHistoryPDF() {
+      const month = document.getElementById('export-history-month').value;
+      const year = document.getElementById('export-history-year').value;
+      const className = document.getElementById('export-history-class').value;
+      
+      const messageEl = document.getElementById('export-history-message');
+      
+      if (APP_STATE.attendance.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada data untuk diexport!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const filtered = filterDataForExport(APP_STATE.attendance, month, year, className);
+      
+      if (filtered.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada data sesuai filter!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFontSize(16);
+      doc.text('LAPORAN RIWAYAT ABSENSI', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(10);
+      doc.text(`Sekolah: ${APP_STATE.settings.school}`, 14, 25);
+      doc.text(`Mata Pelajaran: ${APP_STATE.settings.subject}`, 14, 30);
+      doc.text(`Guru: ${APP_STATE.settings.teacher}`, 14, 35);
+      
+      let currentY = 40;
+      
+      if (month === 'all') {
+        // Group by year and month
+        const groupedData = {};
+        filtered.forEach(a => {
+          const date = new Date(a.date);
+          const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          if (!groupedData[yearMonth]) {
+            groupedData[yearMonth] = [];
+          }
+          groupedData[yearMonth].push(a);
+        });
+        
+        const sortedKeys = Object.keys(groupedData).sort();
+        
+        let students = APP_STATE.students;
+        if (className !== 'all') {
+          students = students.filter(s => s.class_name === className);
+        }
+        
+        // Sort students by class
+        students.sort((a, b) => a.class_name.localeCompare(b.class_name));
+        
+        const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        
+        sortedKeys.forEach((yearMonth, ymIdx) => {
+          const [yr, mo] = yearMonth.split('-');
+          const monthName = monthNames[parseInt(mo)];
+          const monthData = groupedData[yearMonth];
+          
+          if (ymIdx > 0 && currentY > 250) {
+            doc.addPage();
+            currentY = 15;
+          }
+          
+          doc.setFontSize(12);
+          doc.text(`${monthName} ${yr}`, 14, currentY);
+          currentY += 5;
+          
+          const dates = [...new Set(monthData.map(a => a.date))].sort();
+          
+          // Limit dates displayed if too many
+          const maxDatesPerTable = 8;
+          const displayDates = dates.slice(0, maxDatesPerTable);
+          
+          const headerRow = ['NO', 'NAMA', 'KELAS'];
+          displayDates.forEach(d => {
+            const dateObj = new Date(d);
+            headerRow.push(`${dateObj.getDate()}/${dateObj.getMonth() + 1}`);
+          });
+          headerRow.push('H', 'S', 'I', 'A');
+          
+          const tableData = students.map((student, idx) => {
+            const row = [idx + 1, student.name.substring(0, 15), student.class_name];
+            
+            let h = 0, s = 0, i = 0, a = 0;
+            
+            displayDates.forEach(date => {
+              const attendance = monthData.find(att => att.student_id === student.id && att.date === date);
+              if (attendance) {
+                const statusShort = attendance.status === 'Hadir' ? 'H' : attendance.status === 'Sakit' ? 'S' : attendance.status === 'Izin' ? 'I' : 'A';
+                row.push(statusShort);
+                if (attendance.status === 'Hadir') h++;
+                else if (attendance.status === 'Sakit') s++;
+                else if (attendance.status === 'Izin') i++;
+                else if (attendance.status === 'Alpha') a++;
+              } else {
+                row.push('-');
+              }
+            });
+            
+            row.push(h, s, i, a);
+            return row;
+          });
+          
+          doc.autoTable({
+            startY: currentY,
+            head: [headerRow],
+            body: tableData,
+            styles: { fontSize: 7, cellPadding: 1 },
+            headStyles: { fillColor: [79, 70, 229] },
+            columnStyles: {
+              0: { cellWidth: 8 },
+              1: { cellWidth: 30 },
+              2: { cellWidth: 15 }
+            }
+          });
+          
+          currentY = doc.lastAutoTable.finalY + 5;
+        });
+      } else {
+        // Single month
+        let students = APP_STATE.students;
+        if (className !== 'all') {
+          students = students.filter(s => s.class_name === className);
+        }
+        
+        // Sort students by class
+        students.sort((a, b) => a.class_name.localeCompare(b.class_name));
+        
+        const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const date = new Date(filtered[0].date);
+        const monthName = monthNames[date.getMonth() + 1];
+        
+        doc.setFontSize(12);
+        doc.text(`${monthName} ${year}`, 14, currentY);
+        currentY += 5;
+        
+        const dates = [...new Set(filtered.map(a => a.date))].sort();
+        const maxDatesPerTable = 8;
+        const displayDates = dates.slice(0, maxDatesPerTable);
+        
+        const headerRow = ['NO', 'NAMA', 'KELAS'];
+        displayDates.forEach(d => {
+          const dateObj = new Date(d);
+          headerRow.push(`${dateObj.getDate()}/${dateObj.getMonth() + 1}`);
+        });
+        headerRow.push('H', 'S', 'I', 'A');
+        
+        const tableData = students.map((student, idx) => {
+          const row = [idx + 1, student.name.substring(0, 15), student.class_name];
+          
+          let h = 0, s = 0, i = 0, a = 0;
+          
+          displayDates.forEach(date => {
+            const attendance = filtered.find(att => att.student_id === student.id && att.date === date);
+            if (attendance) {
+              const statusShort = attendance.status === 'Hadir' ? 'H' : attendance.status === 'Sakit' ? 'S' : attendance.status === 'Izin' ? 'I' : 'A';
+              row.push(statusShort);
+              if (attendance.status === 'Hadir') h++;
+              else if (attendance.status === 'Sakit') s++;
+              else if (attendance.status === 'Izin') i++;
+              else if (attendance.status === 'Alpha') a++;
+            } else {
+              row.push('-');
+            }
+          });
+          
+          row.push(h, s, i, a);
+          return row;
+        });
+        
+        doc.autoTable({
+          startY: currentY,
+          head: [headerRow],
+          body: tableData,
+          styles: { fontSize: 7, cellPadding: 1 },
+          headStyles: { fillColor: [79, 70, 229] },
+          columnStyles: {
+            0: { cellWidth: 8 },
+            1: { cellWidth: 30 },
+            2: { cellWidth: 15 }
+          }
+        });
+      }
+      
+      const filename = `Riwayat_Absensi_${className === 'all' ? 'Semua' : className}_${Date.now()}.pdf`;
+      doc.save(filename);
+      
+      messageEl.textContent = `✅ PDF berhasil diunduh!`;
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    function exportRekapExcel() {
+      const month = document.getElementById('export-rekap-month').value;
+      const year = document.getElementById('export-rekap-year').value;
+      const className = document.getElementById('export-rekap-class').value;
+      
+      const messageEl = document.getElementById('export-rekap-message');
+      
+      if (APP_STATE.students.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada data siswa!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      let students = APP_STATE.students;
+      if (className !== 'all') {
+        students = students.filter(s => s.class_name === className);
+      }
+      
+      if (students.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada siswa sesuai filter!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const wb = XLSX.utils.book_new();
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      
+      // Check if all months selected
+      if (month === 'all') {
+        // Group attendance by year-month
+        const groupedData = {};
+        APP_STATE.attendance.forEach(a => {
+          const date = new Date(a.date);
+          const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          if (!groupedData[yearMonth]) {
+            groupedData[yearMonth] = [];
+          }
+          groupedData[yearMonth].push(a);
+        });
+        
+        const sortedKeys = Object.keys(groupedData).sort();
+        const allData = [];
+        
+        allData.push(['LAPORAN STATISTIK ABSENSI']);
+        allData.push([]);
+        
+        sortedKeys.forEach(yearMonth => {
+          const [yr, mo] = yearMonth.split('-');
+          const monthName = monthNames[parseInt(mo)];
+          const monthData = groupedData[yearMonth];
+          
+          // Filter by class if needed
+          let monthFiltered = monthData;
+          if (className !== 'all') {
+            monthFiltered = monthData.filter(a => a.class_name === className);
+          }
+          
+          allData.push([`${monthName} ${yr}`]);
+          allData.push([]);
+          
+          const headerRow = ['NO', 'NAMA', 'KELAS', 'HADIR', 'SAKIT', 'IZIN', 'ALPHA'];
+          allData.push(headerRow);
+          
+          students.forEach((s, idx) => {
+            const studentAttendance = monthFiltered.filter(a => a.student_id === s.id);
+            const hadir = studentAttendance.filter(a => a.status === 'Hadir').length;
+            const sakit = studentAttendance.filter(a => a.status === 'Sakit').length;
+            const izin = studentAttendance.filter(a => a.status === 'Izin').length;
+            const alpha = studentAttendance.filter(a => a.status === 'Alpha').length;
+            
+            allData.push([idx + 1, s.name, s.class_name, hadir, sakit, izin, alpha]);
+          });
+          
+          allData.push([]);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(allData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Statistik Absensi');
+        
+      } else {
+        // Single month
+        const filtered = filterDataForExport(APP_STATE.attendance, month, year, className);
+        
+        const allData = [];
+        allData.push(['LAPORAN STATISTIK ABSENSI']);
+        
+        const monthName = monthNames[parseInt(month)];
+        allData.push([`${monthName} ${year}`]);
+        allData.push([]);
+        
+        const headerRow = ['NO', 'NAMA', 'KELAS', 'HADIR', 'SAKIT', 'IZIN', 'ALPHA'];
+        allData.push(headerRow);
+        
+        students.forEach((s, idx) => {
+          const studentAttendance = filtered.filter(a => a.student_id === s.id);
+          const hadir = studentAttendance.filter(a => a.status === 'Hadir').length;
+          const sakit = studentAttendance.filter(a => a.status === 'Sakit').length;
+          const izin = studentAttendance.filter(a => a.status === 'Izin').length;
+          const alpha = studentAttendance.filter(a => a.status === 'Alpha').length;
+          
+          allData.push([idx + 1, s.name, s.class_name, hadir, sakit, izin, alpha]);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(allData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Statistik Absensi');
+      }
+      
+      const filename = `Statistik_Absensi_${className === 'all' ? 'Semua' : className}_${Date.now()}.xlsx`;
+      XLSX.writeFile(wb, filename);
+      
+      messageEl.textContent = `✅ ${students.length} data berhasil diexport!`;
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    function exportRekapPDF() {
+      const month = document.getElementById('export-rekap-month').value;
+      const year = document.getElementById('export-rekap-year').value;
+      const className = document.getElementById('export-rekap-class').value;
+      
+      const messageEl = document.getElementById('export-rekap-message');
+      
+      if (APP_STATE.students.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada data siswa!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      let students = APP_STATE.students;
+      if (className !== 'all') {
+        students = students.filter(s => s.class_name === className);
+      }
+      
+      if (students.length === 0) {
+        messageEl.textContent = '⚠️ Tidak ada siswa sesuai filter!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      
+      doc.setFontSize(16);
+      doc.text('LAPORAN STATISTIK ABSENSI', 105, 15, { align: 'center' });
+      
+      let currentY = 25;
+      
+      if (month === 'all') {
+        // Group by year-month
+        const groupedData = {};
+        APP_STATE.attendance.forEach(a => {
+          const date = new Date(a.date);
+          const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          if (!groupedData[yearMonth]) {
+            groupedData[yearMonth] = [];
+          }
+          groupedData[yearMonth].push(a);
+        });
+        
+        const sortedKeys = Object.keys(groupedData).sort();
+        
+        sortedKeys.forEach((yearMonth, idx) => {
+          const [yr, mo] = yearMonth.split('-');
+          const monthName = monthNames[parseInt(mo)];
+          const monthData = groupedData[yearMonth];
+          
+          let monthFiltered = monthData;
+          if (className !== 'all') {
+            monthFiltered = monthData.filter(a => a.class_name === className);
+          }
+          
+          if (idx > 0 && currentY > 250) {
+            doc.addPage();
+            currentY = 15;
+          }
+          
+          doc.setFontSize(12);
+          doc.text(`${monthName} ${yr}`, 14, currentY);
+          currentY += 5;
+          
+          const tableData = students.map((s, i) => {
+            const studentAttendance = monthFiltered.filter(a => a.student_id === s.id);
+            const hadir = studentAttendance.filter(a => a.status === 'Hadir').length;
+            const sakit = studentAttendance.filter(a => a.status === 'Sakit').length;
+            const izin = studentAttendance.filter(a => a.status === 'Izin').length;
+            const alpha = studentAttendance.filter(a => a.status === 'Alpha').length;
+            
+            return [i + 1, s.name.substring(0, 20), s.class_name, hadir, sakit, izin, alpha];
+          });
+          
+          doc.autoTable({
+            startY: currentY,
+            head: [['NO', 'NAMA', 'KELAS', 'HADIR', 'SAKIT', 'IZIN', 'ALPHA']],
+            body: tableData,
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: [79, 70, 229] },
+            columnStyles: {
+              0: { cellWidth: 10 },
+              1: { cellWidth: 50 },
+              2: { cellWidth: 20 }
+            }
+          });
+          
+          currentY = doc.lastAutoTable.finalY + 10;
+        });
+        
+      } else {
+        // Single month
+        const filtered = filterDataForExport(APP_STATE.attendance, month, year, className);
+        
+        const monthName = monthNames[parseInt(month)];
+        doc.setFontSize(12);
+        doc.text(`${monthName} ${year}`, 14, currentY);
+        currentY += 5;
+        
+        const tableData = students.map((s, i) => {
+          const studentAttendance = filtered.filter(a => a.student_id === s.id);
+          const hadir = studentAttendance.filter(a => a.status === 'Hadir').length;
+          const sakit = studentAttendance.filter(a => a.status === 'Sakit').length;
+          const izin = studentAttendance.filter(a => a.status === 'Izin').length;
+          const alpha = studentAttendance.filter(a => a.status === 'Alpha').length;
+          
+          return [i + 1, s.name.substring(0, 20), s.class_name, hadir, sakit, izin, alpha];
+        });
+        
+        doc.autoTable({
+          startY: currentY,
+          head: [['NO', 'NAMA', 'KELAS', 'HADIR', 'SAKIT', 'IZIN', 'ALPHA']],
+          body: tableData,
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [79, 70, 229] },
+          columnStyles: {
+            0: { cellWidth: 10 },
+            1: { cellWidth: 50 },
+            2: { cellWidth: 20 }
+          }
+        });
+      }
+      
+      const filename = `Statistik_Absensi_${className === 'all' ? 'Semua' : className}_${Date.now()}.pdf`;
+      doc.save(filename);
+      
+      messageEl.textContent = `✅ PDF berhasil diunduh!`;
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    // Send Functions
+    function initializeSendFilters() {
+      initializeSendYearDropdown();
+      updateSendClassFilter();
+    }
+
+    function initializeSendYearDropdown() {
+      const currentYear = new Date().getFullYear();
+      const select = document.getElementById('send-year');
+      
+      if (!select) return;
+      
+      const currentValue = select.value;
+      select.innerHTML = '<option value="all">Semua Tahun</option>';
+      
+      for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        if (year == currentValue) option.selected = true;
+        select.appendChild(option);
+      }
+      
+      if (!currentValue || currentValue === 'all') {
+        select.value = 'all';
+      }
+    }
+
+    function updateSendClassFilter() {
+      const classes = [...new Set(APP_STATE.students.map(s => s.class_name))].sort();
+      const select = document.getElementById('send-class');
+      
+      if (!select) return;
+      
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">-- Pilih Kelas --</option><option value="all">Semua Kelas</option>';
+      
+      classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls;
+        option.textContent = cls;
+        if (cls === currentValue) option.selected = true;
+        select.appendChild(option);
+      });
+    }
+
+    function handleSendMonthChange() {
+      const monthSelect = document.getElementById('send-month');
+      const yearSelect = document.getElementById('send-year');
+      
+      if (monthSelect.value === 'all') {
+        yearSelect.innerHTML = '<option value="all">Semua Tahun</option>';
+      } else {
+        initializeSendYearDropdown();
+      }
+    }
+
+    function generateSendMessage() {
+      const month = document.getElementById('send-month').value;
+      const year = document.getElementById('send-year').value;
+      const className = document.getElementById('send-class').value;
+      
+      if (!className) {
+        return null;
+      }
+      
+      let students = APP_STATE.students;
+      if (className !== 'all') {
+        students = students.filter(s => s.class_name === className);
+      }
+      
+      if (students.length === 0) {
+        return null;
+      }
+      
+      const filtered = filterDataForExport(APP_STATE.attendance, month, year, className);
+      
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const periodText = month === 'all' && year === 'all' ? 'Semua Data' : 
+                         month === 'all' ? `Tahun ${year}` : 
+                         year === 'all' ? monthNames[parseInt(month)] : 
+                         `${monthNames[parseInt(month)]} ${year}`;
+      
+      let message = `*LAPORAN ABSENSI*\n`;
+      message += `${periodText}\n\n`;
+      message += `Sekolah: ${APP_STATE.settings.school}\n`;
+      message += `Mata Pelajaran: ${APP_STATE.settings.subject}\n`;
+      message += `Guru: ${APP_STATE.settings.teacher}\n\n`;
+      
+      students.forEach((student, idx) => {
+        const studentAttendance = filtered.filter(a => a.student_id === student.id);
+        const hadir = studentAttendance.filter(a => a.status === 'Hadir').length;
+        const sakit = studentAttendance.filter(a => a.status === 'Sakit').length;
+        const izin = studentAttendance.filter(a => a.status === 'Izin').length;
+        const alpha = studentAttendance.filter(a => a.status === 'Alpha').length;
+        
+        message += `${idx + 1}. ${student.name}\n`;
+        message += `Kelas: ${student.class_name}\n`;
+        message += `Hadir: ${hadir}\n`;
+        message += `Sakit: ${sakit}\n`;
+        message += `Izin: ${izin}\n`;
+        message += `Alpha: ${alpha}\n\n`;
+      });
+      
+      message += `_Laporan dibuat: ${new Date().toLocaleString('id-ID')}_`;
+      
+      return message;
+    }
+
+    function sendViaWhatsApp() {
+      const messageEl = document.getElementById('send-message-box');
+      const message = generateSendMessage();
+      
+      if (!message) {
+        messageEl.textContent = '⚠️ Pilih kelas terlebih dahulu!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      
+      messageEl.textContent = '✅ WhatsApp terbuka! Silakan pilih kontak.';
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    function sendViaEmail() {
+      const messageEl = document.getElementById('send-message-box');
+      const message = generateSendMessage();
+      
+      if (!message) {
+        messageEl.textContent = '⚠️ Pilih kelas terlebih dahulu!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const subject = 'Laporan Absensi - ' + APP_STATE.settings.school;
+      const body = message.replace(/\*/g, '').replace(/_/g, '');
+      
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      window.open(mailtoUrl, '_blank', 'noopener,noreferrer');
+      
+      messageEl.textContent = '✅ Email client terbuka! Lengkapi penerima.';
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    // Backup/Restore
+    function backupData() {
+      const backupData = {
+        students: APP_STATE.students,
+        attendance: APP_STATE.attendance,
+        settings: APP_STATE.settings,
+        timestamp: new Date().toISOString()
+      };
+      
+      const dataStr = JSON.stringify(backupData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(dataBlob);
+      link.download = `Backup_Absensi_${Date.now()}.json`;
+      link.click();
+      
+      const messageEl = document.getElementById('save-message');
+      messageEl.textContent = '✅ Backup berhasil diunduh!';
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    function restoreData() {
+      const fileInput = document.getElementById('restore-file');
+      const file = fileInput.files[0];
+      
+      const messageEl = document.getElementById('save-message');
+      
+      if (!file) {
+        messageEl.textContent = '⚠️ Pilih file backup terlebih dahulu!';
+        messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+        messageEl.classList.remove('hidden');
+        setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        return;
+      }
+      
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          const backupData = JSON.parse(e.target.result);
+          
+          if (backupData.students) APP_STATE.students = backupData.students;
+          if (backupData.attendance) APP_STATE.attendance = backupData.attendance;
+          if (backupData.settings) APP_STATE.settings = backupData.settings;
+          
+          saveToStorage();
+          updateAllViews();
+          startRotatingText();
+          
+          messageEl.textContent = '✅ Data berhasil dipulihkan!';
+          messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+          messageEl.classList.remove('hidden');
+          setTimeout(() => messageEl.classList.add('hidden'), 3000);
+          
+        } catch (error) {
+          messageEl.textContent = '⚠️ File backup tidak valid!';
+          messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-red-100 text-red-700';
+          messageEl.classList.remove('hidden');
+          setTimeout(() => messageEl.classList.add('hidden'), 3000);
+        }
+      };
+      
+      reader.readAsText(file);
+    }
+
+    function confirmClearAll() {
+      const confirmed = confirm('⚠️ PERINGATAN!\n\nApakah Anda yakin ingin menghapus SEMUA data siswa dan absensi?\n\nTindakan ini TIDAK DAPAT dibatalkan!\n\nKlik OK untuk menghapus, atau Cancel untuk membatalkan.');
+      
+      if (!confirmed) return;
+      
+      APP_STATE.students = [];
+      APP_STATE.attendance = [];
+      saveToStorage();
+      updateAllViews();
+      
+      const messageEl = document.getElementById('save-message');
+      messageEl.textContent = '✅ Semua data berhasil dihapus!';
+      messageEl.className = 'mt-4 p-4 rounded-xl text-center font-semibold bg-green-100 text-green-700';
+      messageEl.classList.remove('hidden');
+      setTimeout(() => messageEl.classList.add('hidden'), 3000);
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', initApp);
+    
+    // Save Animation Functions
+    function showSaveAnimation() {
+      // Update last save time
+      const lastSaveEl = document.getElementById('last-save-time');
+      if (lastSaveEl) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        lastSaveEl.textContent = `Terakhir disimpan: ${timeStr}`;
+      }
+      
+      // Add save activity
+      addSaveActivity();
+      
+      // Flash animation on autosave indicator
+      const indicator = document.querySelector('.autosave-indicator');
+      if (indicator) {
+        indicator.classList.add('save-flash');
+        setTimeout(() => indicator.classList.remove('save-flash'), 500);
+      }
+    }
+    
+    function addSaveActivity() {
+      const activityList = document.getElementById('save-activity-list');
+      if (!activityList) return;
+      
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      
+      const actions = [
+        '💾 Data siswa tersimpan',
+        '📝 Data absensi tersimpan',
+        '⚙️ Pengaturan tersimpan',
+        '✅ Semua data tersinkronisasi'
+      ];
+      
+      const randomAction = actions[Math.floor(Math.random() * actions.length)];
+      
+      const activityItem = document.createElement('div');
+      activityItem.className = 'flex items-center justify-between text-xs fade-in';
+      activityItem.innerHTML = `
+        <span class="text-green-700">${randomAction}</span>
+        <span class="text-green-600 font-semibold">${timeStr}</span>
+      `;
+      
+      // Add to top
+      activityList.insertBefore(activityItem, activityList.firstChild);
+      
+      // Keep only last 5 activities
+      while (activityList.children.length > 5) {
+        activityList.removeChild(activityList.lastChild);
+      }
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c0daf4a75506d44',t:'MTc2ODkwMjgwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
